@@ -150,6 +150,52 @@ export class EventoService {
     if (error) throw error
     return (data ?? []).map((r) => new Regiao(r.id, r.nome))
   }
+
+  public async buscarProdutorPorId(produtorId: string): Promise<Produtor | null> {
+    const { data, error } = await supabase
+      .from('produtores')
+      .select(`
+        id,
+        telefone,
+        descricao,
+        status,
+        suspenso_ate,
+        profiles!inner ( nome, email )
+      `)
+      .eq('id', produtorId)
+      .maybeSingle()
+
+    if (error) throw error
+    if (!data) return null
+
+    const profile = Array.isArray(data.profiles) ? data.profiles[0] : data.profiles
+
+    const produtor = new Produtor({
+      id: data.id,
+      nome: profile?.nome ?? 'Produtor',
+      email: profile?.email ?? '',
+      telefone: data.telefone,
+      descricao: data.descricao,
+      status: data.status,
+      suspensoAte: data.suspenso_ate
+    })
+
+    return produtor.podePublicar() ? produtor : null
+  }
+
+  public async listarEventosPorProdutor(produtorId: string): Promise<Evento[]> {
+    const { data, error } = await supabase
+      .from('vw_eventos_publicos')
+      .select('*')
+      .eq('produtor_id', produtorId)
+      .order('data_inicio', { ascending: true })
+
+    if (error) throw error
+
+    return (data ?? [])
+      .map((row) => this.mapearParaEvento(row))
+      .filter((evento) => evento.estaVisivel())
+  }
 }
 
 export const eventoService = new EventoService()
