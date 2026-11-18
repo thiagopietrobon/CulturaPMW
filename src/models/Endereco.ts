@@ -45,10 +45,23 @@ export class Endereco {
   }
 
   public gerarLinkMapa(provedor: 'google' | 'waze' = 'google'): string {
-    const query = encodeURIComponent(`${this.logradouro}, ${this.numero}, ${this.bairro}, ${this.cidade} - ${this.uf}`)
+    // Use os mesmos dados exibidos ao usuário, incluindo complemento e CEP.
+    // Quando o número não foi informado, explicita S/N em vez de enviar vazio.
+    const partesEndereco = [
+      this.logradouro.trim(),
+      this.numero.trim() || 'S/N',
+      this.complemento.trim(),
+      this.bairro.trim(),
+      `${this.cidade.trim()} - ${this.uf.trim()}`,
+      this.cep.trim() ? `CEP ${this.cep.trim()}` : ''
+    ].filter(Boolean)
+
+    const query = encodeURIComponent(partesEndereco.join(', '))
+
     if (provedor === 'waze') {
       return `https://waze.com/ul?q=${query}&navigate=yes`
     }
+
     return `https://www.google.com/maps/search/?api=1&query=${query}`
   }
 }

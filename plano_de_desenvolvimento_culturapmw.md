@@ -84,9 +84,9 @@ O desenvolvimento das interfaces será dividido em quatro áreas principais.
 | Tela | Descrição |
 | :--- | :--- |
 | Painel do produtor | Visão geral dos eventos cadastrados. |
-| Meus eventos | Listagem dos eventos do produtor. |
-| Cadastro de evento | Formulário para criação de eventos. |
-| Edição de evento | Alteração das informações de um evento. |
+| Meus eventos | Implementada no RF02: listagem dos eventos do produtor, situação e ações de gerenciamento. |
+| Cadastro de evento | Implementada no RF02: categoria, datas, entrada, imagem, localização e links externos. |
+| Edição de evento | Implementada no RF02: formulário preenchido com os dados de um evento próprio. |
 | Perfil do produtor | Gerenciamento das informações públicas. |
 
 ### **3.4. Área administrativa**
@@ -255,15 +255,19 @@ Atividades:
 
 Objetivo: permitir o cadastro e o gerenciamento dos eventos pelos produtores aprovados.
 
-**RF06 — Gerenciamento de localização (módulo desenvolvido; integração com os formulários de evento pendente):** o componente `LocalizacaoEventoForm.vue`, o serviço `LocalizacaoService.ts`, a consulta ViaCEP e a migration de permissões de localização foram preparados. O formulário será incorporado às telas de publicação e edição durante a implementação do RF02, quando o evento já possuir um identificador para associação da localização.
+**RF06 — Gerenciamento de localização (integrado ao RF02):** o componente `LocalizacaoEventoForm.vue`, o serviço `LocalizacaoService.ts` e a consulta ViaCEP foram incorporados aos formulários de publicação e edição. A localização é salva junto ao evento e associada por `evento_id`.
 
 Atividades:
 
-* [ ] Criar o formulário de cadastro de eventos com preenchimento automático de endereço via `ViaCepService`.
-* [ ] Implementar edição e exclusão de eventos.
-* [ ] Integrar o envio de imagens ao Supabase Storage (`eventos-imagens`).
-* [ ] Gerenciar os vínculos com categorias, regiões e links externos.
-* [ ] Implementar validações dos formulários.
+* [x] Criar o formulário de cadastro de eventos com preenchimento automático de endereço via `ServicoCEP`.
+* [x] Implementar edição e exclusão de eventos do próprio produtor.
+* [x] Integrar o envio de imagens ao Supabase Storage (`eventos-imagens`).
+* [x] Gerenciar os vínculos com categorias, regiões e links externos.
+* [x] Implementar validações dos formulários e da operação transacional no banco.
+* [x] Criar a rota e a tela de gerenciamento dos eventos do produtor.
+* [ ] Executar a migration RF02 no projeto Supabase de destino e validar os fluxos integrados.
+
+**RF02 — Gerenciamento de eventos (código implementado; validar no Supabase):** a área do produtor permite listar, publicar, editar e excluir eventos. O salvamento utiliza a função `produtor_salvar_evento`, que grava evento, localização e links externos na mesma transação. As imagens são enviadas ao bucket público `eventos-imagens`, com upload restrito ao produtor aprovado. A migration `202611180005_rf02_gerenciar_eventos.sql` configura a função, as políticas RLS e o bucket.
 
 ### **Etapa 5 — Área administrativa (Implementada; validar no banco de destino)**
 

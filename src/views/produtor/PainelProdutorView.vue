@@ -26,8 +26,8 @@ const { perfil } = useAuth()
       <article class="produtor-dashboard-card">
         <span class="produtor-dashboard-icon">▣</span>
         <h2>Meus eventos</h2>
-        <p>O gerenciamento de publicações será disponibilizado na próxima etapa do desenvolvimento.</p>
-        <span class="produtor-feature-pending">Em implementação</span>
+        <p>Publique novas atrações e atualize as informações dos eventos que você cadastrou.</p>
+        <RouterLink to="/produtor/eventos" class="produtor-text-link">Gerenciar meus eventos →</RouterLink>
       </article>
     </section>
   </main>

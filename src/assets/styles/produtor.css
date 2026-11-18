@@ -10,10 +10,10 @@
 .produtor-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 .produtor-field{display:flex;min-width:0;flex-direction:column;gap:6px;color:#43536b;font-size:12px;font-weight:700}
 .produtor-field-full{grid-column:1/-1}
-.produtor-field input,.produtor-field textarea{width:100%;min-height:43px;padding:10px 12px;border:1px solid #dce3ed;border-radius:7px;background:#fff;color:#172b49;font-size:13px;font-weight:400;outline:none}
+.produtor-field input,.produtor-field textarea,.produtor-field select{width:100%;min-height:43px;padding:10px 12px;border:1px solid #dce3ed;border-radius:7px;background:#fff;color:#172b49;font-size:13px;font-weight:400;outline:none}
 .produtor-field textarea{min-height:95px;resize:vertical}
-.produtor-field input:focus,.produtor-field textarea:focus{border-color:#4e86df;box-shadow:0 0 0 3px rgba(29,100,216,.1)}
-.produtor-field input:disabled,.produtor-field textarea:disabled{background:#f6f8fb;color:#64748b;cursor:not-allowed}
+.produtor-field input:focus,.produtor-field textarea:focus,.produtor-field select:focus{border-color:#4e86df;box-shadow:0 0 0 3px rgba(29,100,216,.1)}
+.produtor-field input:disabled,.produtor-field textarea:disabled,.produtor-field select:disabled{background:#f6f8fb;color:#64748b;cursor:not-allowed}
 .produtor-form-note{color:#738096;font-size:11px;line-height:1.55}
 .produtor-form-inline{display:flex;justify-content:flex-end;font-size:12px}
 .produtor-form-inline a,.produtor-auth-footer a,.produtor-alert-link{color:var(--color-primary);font-weight:700}

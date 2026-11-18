@@ -11,6 +11,8 @@ import AguardandoAprovacaoView from '../views/produtor/AguardandoAprovacaoView.v
 import PainelProdutorView from '../views/produtor/PainelProdutorView.vue'
 import PerfilProdutorView from '../views/produtor/PerfilProdutorView.vue'
 import StatusProdutorView from '../views/produtor/StatusProdutorView.vue'
+import MeusEventosView from '../views/produtor/MeusEventosView.vue'
+import FormularioEventoView from '../views/produtor/FormularioEventoView.vue'
 import AdminLayout from '../views/admin/AdminLayout.vue'
 import AdminLoginView from '../views/admin/AdminLoginView.vue'
 import AdminDashboardView from '../views/admin/AdminDashboardView.vue'
@@ -64,6 +66,24 @@ const router = createRouter({
       name: 'produtor-perfil-edicao',
       component: PerfilProdutorView,
       meta: { requiresProducer: true }
+    },
+    {
+      path: '/produtor/eventos',
+      name: 'produtor-eventos',
+      component: MeusEventosView,
+      meta: { requiresProducer: true, requiresApprovedProducer: true }
+    },
+    {
+      path: '/produtor/eventos/novo',
+      name: 'produtor-evento-novo',
+      component: FormularioEventoView,
+      meta: { requiresProducer: true, requiresApprovedProducer: true }
+    },
+    {
+      path: '/produtor/eventos/:id/editar',
+      name: 'produtor-evento-editar',
+      component: FormularioEventoView,
+      meta: { requiresProducer: true, requiresApprovedProducer: true }
     },
     {
       path: '/admin/login',

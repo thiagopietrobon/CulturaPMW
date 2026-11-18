@@ -5,6 +5,7 @@ import { Evento, type SituacaoEvento } from '../models/Evento'
 import { LinkExterno, type TipoLink } from '../models/LinkExterno'
 import { Produtor } from '../models/Produtor'
 import { Regiao } from '../models/Regiao'
+import type { DadosLocalizacaoEvento } from './LocalizacaoService'
 
 export interface FiltrosEventos {
   busca?: string
@@ -12,6 +13,45 @@ export interface FiltrosEventos {
   regiaoId?: number | null
   gratuito?: 'todos' | 'gratuitos' | 'pagos'
   periodo?: 'todos' | 'hoje' | 'fim-de-semana'
+}
+
+export interface DadosSalvarEventoProdutor {
+  titulo: string
+  descricao: string
+  imagem_url: string | null
+  categoria_id: number
+  data_inicio: string
+  data_fim: string
+  gratuito: boolean
+  valor_ingresso: number
+  localizacao: DadosLocalizacaoEvento
+  links: Array<{ tipo: TipoLink; url: string }>
+}
+
+export interface EventoGerenciadoProdutor {
+  id: string
+  produtor_id: string
+  categoria_id: number
+  titulo: string
+  descricao: string
+  imagem_url: string | null
+  data_inicio: string
+  data_fim: string
+  gratuito: boolean
+  valor_ingresso: number | string | null
+  situacao: SituacaoEvento
+  created_at: string | null
+  categoria: { id: number; nome: string } | null
+  localizacao: (DadosLocalizacaoEvento & { regiao?: { id: number; nome: string } | null }) | null
+  links: Array<{ id: string; tipo: TipoLink; url: string }>
+}
+
+const BUCKET_IMAGENS_EVENTOS = 'eventos-imagens'
+const TAMANHO_MAXIMO_IMAGEM = 5 * 1024 * 1024
+const TIPOS_IMAGEM_PERMITIDOS = ['image/jpeg', 'image/png', 'image/webp']
+
+function extrairRelacao<T>(valor: T | T[] | null | undefined): T | null {
+  return Array.isArray(valor) ? valor[0] ?? null : valor ?? null
 }
 
 export class EventoService {
@@ -185,6 +225,127 @@ export class EventoService {
     return (data ?? [])
       .map((row) => this.mapearParaEvento(row))
       .filter((evento) => evento.estaVisivel())
+  }
+
+  /** Lista todos os eventos do produtor, inclusive ocultos e encerrados, na área autenticada. */
+  public async listarMeusEventos(produtorId: string): Promise<EventoGerenciadoProdutor[]> {
+    if (!produtorId) throw new Error('Não foi possível identificar o produtor autenticado.')
+
+    const { data, error } = await supabase
+      .from('eventos')
+      .select(`
+        id, produtor_id, categoria_id, titulo, descricao, imagem_url,
+        data_inicio, data_fim, gratuito, valor_ingresso, situacao, created_at,
+        categoria:categorias!eventos_categoria_id_fkey ( id, nome ),
+        localizacao:localizacoes!localizacoes_evento_id_fkey (
+          cep, logradouro, numero, complemento, bairro, cidade, uf, regiao_id,
+          regiao:regioes!localizacoes_regiao_id_fkey ( id, nome )
+        ),
+        links:links_externos!links_externos_evento_id_fkey ( id, tipo, url )
+      `)
+      .eq('produtor_id', produtorId)
+      .order('data_inicio', { ascending: true })
+
+    if (error) throw error
+
+    return (data ?? []).map((item: any) => {
+      const categoria = extrairRelacao(item.categoria)
+      const localizacao = extrairRelacao(item.localizacao)
+      if (localizacao) localizacao.regiao = extrairRelacao(localizacao.regiao)
+
+      return {
+        ...item,
+        categoria,
+        localizacao,
+        links: item.links ?? []
+      } as EventoGerenciadoProdutor
+    })
+  }
+
+  public async buscarMeuEvento(eventoId: string, produtorId: string): Promise<EventoGerenciadoProdutor | null> {
+    if (!eventoId || !produtorId) return null
+
+    const eventos = await this.listarMeusEventos(produtorId)
+    return eventos.find((evento) => evento.id === eventoId) ?? null
+  }
+
+  /** Salva evento, localização e links em uma única transação via RPC. */
+  public async salvarEventoProdutor(
+    dados: DadosSalvarEventoProdutor,
+    eventoId: string | null = null
+  ): Promise<string> {
+    const { data, error } = await supabase.rpc('produtor_salvar_evento', {
+      p_evento_id: eventoId,
+      p_dados: dados
+    })
+
+    if (error) throw error
+    if (!data) throw new Error('O evento não retornou um identificador após o salvamento.')
+    return data as string
+  }
+
+  public async excluirMeuEvento(eventoId: string, produtorId: string): Promise<void> {
+    const evento = await this.buscarMeuEvento(eventoId, produtorId)
+    if (!evento) throw new Error('Evento não encontrado ou não pertence à sua conta.')
+
+    const { error } = await supabase
+      .from('eventos')
+      .delete()
+      .eq('id', eventoId)
+      .eq('produtor_id', produtorId)
+
+    if (error) throw error
+
+    if (evento.imagem_url) {
+      try {
+        await this.removerImagemPorUrl(evento.imagem_url)
+      } catch (storageError) {
+        // A exclusão do evento já foi concluída no banco. Uma falha de limpeza
+        // no Storage não deve fazer a interface informar que o evento continua existindo.
+        console.warn('[CulturaPMW] Não foi possível remover a imagem antiga do Storage:', storageError)
+      }
+    }
+  }
+
+  public async enviarImagemEvento(arquivo: File, produtorId: string): Promise<string> {
+    if (!produtorId) throw new Error('Não foi possível identificar o produtor autenticado.')
+    if (!TIPOS_IMAGEM_PERMITIDOS.includes(arquivo.type)) {
+      throw new Error('Envie uma imagem nos formatos JPG, PNG ou WebP.')
+    }
+    if (arquivo.size <= 0 || arquivo.size > TAMANHO_MAXIMO_IMAGEM) {
+      throw new Error('A imagem deve possuir no máximo 5 MB.')
+    }
+
+    const extensao = arquivo.type === 'image/jpeg' ? 'jpg' : arquivo.type.split('/')[1]
+    const caminho = `${produtorId}/${crypto.randomUUID()}.${extensao}`
+    const { error } = await supabase.storage
+      .from(BUCKET_IMAGENS_EVENTOS)
+      .upload(caminho, arquivo, {
+        cacheControl: '3600',
+        contentType: arquivo.type,
+        upsert: false
+      })
+
+    if (error) {
+      if (error.message.toLowerCase().includes('bucket not found')) {
+        throw new Error('O armazenamento de imagens ainda não foi configurado. Execute a migration RF02 no Supabase.')
+      }
+      throw error
+    }
+
+    return supabase.storage.from(BUCKET_IMAGENS_EVENTOS).getPublicUrl(caminho).data.publicUrl
+  }
+
+  public async removerImagemPorUrl(url: string): Promise<void> {
+    const marcador = `/storage/v1/object/public/${BUCKET_IMAGENS_EVENTOS}/`
+    const indice = url.indexOf(marcador)
+    if (indice < 0) return
+
+    const caminho = decodeURIComponent(url.slice(indice + marcador.length).split('?')[0])
+    if (!caminho) return
+
+    const { error } = await supabase.storage.from(BUCKET_IMAGENS_EVENTOS).remove([caminho])
+    if (error) throw error
   }
 }
 
