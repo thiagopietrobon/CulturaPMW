@@ -107,6 +107,19 @@ export class AuthService {
     }
   }
 
+  private async verificarDocumentoDisponivel(documento: string): Promise<boolean> {
+    const { data, error } = await supabase.rpc('verificar_documento_produtor_disponivel', {
+      p_documento: documento
+    })
+
+    if (error) {
+      console.error('[CulturaPMW] Falha ao consultar disponibilidade do documento:', error)
+      throw new Error('Não foi possível verificar o CPF/CNPJ agora. Tente novamente.')
+    }
+
+    return data === true
+  }
+
   public async cadastrarProdutor(dados: DadosCadastroProdutor): Promise<ResultadoCadastroProdutor> {
     const documento = normalizarDocumento(dados.cpfCnpj)
     const telefone = normalizarDocumento(dados.telefone)
@@ -115,6 +128,13 @@ export class AuthService {
     if (!validarCpfCnpj(documento)) throw new Error('Informe um CPF ou CNPJ válido.')
     if (!validarTelefone(telefone)) throw new Error('Informe um telefone com DDD válido.')
     if (dados.senha.length < 8) throw new Error('A senha deve possuir pelo menos 8 caracteres.')
+
+    // Consulta antes do signUp para apresentar uma mensagem clara em caso de duplicidade.
+    // A restrição UNIQUE e a verificação do trigger continuam sendo a proteção definitiva.
+    const documentoDisponivel = await this.verificarDocumentoDisponivel(documento)
+    if (!documentoDisponivel) {
+      throw new Error('Este CPF/CNPJ já está cadastrado na plataforma.')
+    }
 
     const { data, error } = await supabase.auth.signUp({
       email: dados.email.trim().toLowerCase(),
@@ -139,14 +159,29 @@ export class AuthService {
       if (mensagem.includes('user already registered')) {
         throw new Error('Já existe uma conta cadastrada com este e-mail.')
       }
+      if (mensagem.includes('database error saving new user')) {
+        // Se outra solicitação cadastrou o mesmo documento entre a consulta
+        // prévia e o signUp, identifica a duplicidade após a falha transacional.
+        try {
+          const aindaDisponivel = await this.verificarDocumentoDisponivel(documento)
+          if (!aindaDisponivel) {
+            throw new Error('Este CPF/CNPJ já está cadastrado na plataforma.')
+          }
+        } catch (consultaError) {
+          if (consultaError instanceof Error && consultaError.message === 'Este CPF/CNPJ já está cadastrado na plataforma.') {
+            throw consultaError
+          }
+          console.error('[CulturaPMW] Não foi possível verificar a causa da falha de cadastro:', consultaError)
+        }
+      }
+
       if (
         mensagem.includes('database error saving new user') ||
         mensagem.includes('permission denied') ||
         mensagem.includes('does not exist') ||
         mensagem.includes('schema cache')
       ) {
-        // O Supabase Auth/PostgREST pode retornar detalhes internos do banco.
-        // Eles ficam no console para diagnóstico, nunca como validação ao produtor.
+        // Detalhes internos ficam no console, nunca como mensagem ao produtor.
         console.error('[CulturaPMW] Falha interna ao concluir o cadastro do produtor:', error)
         throw new Error('Não foi possível concluir seu cadastro agora. Confira os dados e tente novamente. Se o problema continuar, entre em contato com a equipe do CulturaPMW.')
       }
