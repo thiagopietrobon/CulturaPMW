@@ -95,7 +95,7 @@ src/
 ## 🚀 Como Executar Localmente
 
 ### 1️⃣ Pré-requisitos
-* **Node.js** `v18+` instalado
+* **Node.js** `v22.22+` instalado
 * Projeto configurado no **Supabase**
 
 ### 2️⃣ Clone e instale as dependências
@@ -148,3 +148,10 @@ npm run dev
 🎓 *Projeto acadêmico desenvolvido para a disciplina de Modelagem de Software — Palmas, TO*
 
 </div>
+---
+
+## 🛡️ Área administrativa
+
+O painel administrativo está disponível em **`/admin/login`** e contempla visão geral, gerenciamento de produtores, moderação de eventos e gerenciamento de categorias.
+
+Antes do primeiro acesso, execute a migração `supabase/migrations/202611180001_admin_area.sql` no SQL Editor do Supabase e configure o perfil da conta responsável com `profiles.role = 'admin'`. Consulte [`docs/ADMIN_SETUP.md`](docs/ADMIN_SETUP.md) para o passo a passo.
