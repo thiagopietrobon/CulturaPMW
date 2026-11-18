@@ -152,35 +152,25 @@ export class EventoService {
   }
 
   public async buscarProdutorPorId(produtorId: string): Promise<Produtor | null> {
+    // A view pública expõe somente nome, telefone e descrição do produtor aprovado.
+    // E-mail e CPF/CNPJ permanecem restritos ao próprio produtor e à administração.
     const { data, error } = await supabase
-      .from('produtores')
-      .select(`
-        id,
-        telefone,
-        descricao,
-        status,
-        suspenso_ate,
-        profiles!inner ( nome, email )
-      `)
+      .from('vw_produtores_publicos')
+      .select('id, nome, telefone, descricao')
       .eq('id', produtorId)
       .maybeSingle()
 
     if (error) throw error
     if (!data) return null
 
-    const profile = Array.isArray(data.profiles) ? data.profiles[0] : data.profiles
-
-    const produtor = new Produtor({
+    return new Produtor({
       id: data.id,
-      nome: profile?.nome ?? 'Produtor',
-      email: profile?.email ?? '',
+      nome: data.nome,
+      email: '',
       telefone: data.telefone,
       descricao: data.descricao,
-      status: data.status,
-      suspensoAte: data.suspenso_ate
+      status: 'APROVADO'
     })
-
-    return produtor.podePublicar() ? produtor : null
   }
 
   public async listarEventosPorProdutor(produtorId: string): Promise<Evento[]> {

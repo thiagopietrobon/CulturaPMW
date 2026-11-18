@@ -5,8 +5,7 @@ import {
   type CategoriaAdmin,
   type DadosEdicaoEventoAdmin,
   type EventoAdmin,
-  type SituacaoEventoAdmin,
-  type TipoLinkAdmin
+  type SituacaoEventoAdmin
 } from '../../services/AdminService'
 
 const eventos = ref<EventoAdmin[]>([])

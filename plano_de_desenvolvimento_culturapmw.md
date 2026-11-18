@@ -234,19 +234,20 @@ Atividades:
 * [x] Desenvolver a apresentação do perfil público dos produtores (`ProdutorPerfilView.vue`).
 * [x] Registrar rotas públicas no Vue Router e adaptar as telas públicas para dispositivos móveis.
 
-### **Etapa 3 — Autenticação e área do produtor (Próxima etapa)**
+### **Etapa 3 — Autenticação e área do produtor (Código implementado; migração pendente)**
 
 Objetivo: permitir que produtores solicitem acesso e gerenciem suas atividades.
 
 Atividades:
 
-* [ ] Configurar políticas RLS de inserção/atualização em `profiles` e `produtores` no Supabase.
-* [ ] Implementar cadastro, login, logout e recuperação de senha com Supabase Auth (`AuthService.ts` e `useAuth.ts`).
-* [ ] Criar o formulário de solicitação de cadastro como produtor (`CadastroProdutorView.vue`).
-* [ ] Implementar o fluxo de verificação de status (`AGUARDANDO_APROVACAO`, `APROVADO`, `REPROVADO`, `SUSPENSO`).
-* [ ] Criar a tela de aguardando aprovação (`AguardandoAprovacaoView.vue`) e login (`LoginView.vue`).
-* [ ] Desenvolver o painel do produtor (`PainelProdutorView.vue`) e a edição de perfil (`EditarPerfilProdutorView.vue`).
-* [ ] Implementar guardas de rota (`navigation guards`) no Vue Router para controle de acesso às áreas restritas.
+* [ ] Aplicar a migration RF01 para configurar as políticas RLS de leitura/atualização do próprio perfil e dados do produtor; restringir dados pessoais e criar view pública segura.
+* [x] Implementar cadastro, login, logout e recuperação/redefinição de senha com Supabase Auth (`AuthService.ts` e `useAuth.ts`).
+* [x] Criar o formulário de solicitação de cadastro como produtor (`CadastroProdutorView.vue`).
+* [x] Implementar o fluxo de verificação de status (`AGUARDANDO_APROVACAO`, `APROVADO`, `REPROVADO`, `SUSPENSO`).
+* [x] Criar a tela de aguardando aprovação (`AguardandoAprovacaoView.vue`) e login (`LoginView.vue`).
+* [x] Desenvolver o painel do produtor (`PainelProdutorView.vue`) e a edição de perfil (`PerfilProdutorView.vue`).
+* [x] Implementar guardas de rota (`navigation guards`) no Vue Router para controle de acesso às áreas restritas.
+* [ ] Aplicar a função `produtor_excluir_propria_conta` para permitir a exclusão da própria conta com remoção em cascata dos registros associados.
 
 ### **Etapa 4 — Gerenciamento de eventos**
 
@@ -260,18 +261,18 @@ Atividades:
 * [ ] Gerenciar os vínculos com categorias, regiões e links externos.
 * [ ] Implementar validações dos formulários.
 
-### **Etapa 5 — Área administrativa**
+### **Etapa 5 — Área administrativa (Implementada; validar no banco de destino)**
 
 Objetivo: disponibilizar ferramentas para gerenciamento e moderação da plataforma.
 
 Atividades:
 
-* [ ] Criar o painel administrativo (`AdminService.ts`).
-* [ ] Implementar aprovação e rejeição de solicitações de produtores.
-* [ ] Criar a tela de gerenciamento de produtores (suspensão temporária e exclusão).
-* [ ] Implementar moderação de eventos (correção e remoção).
-* [ ] Criar o gerenciamento de categorias (CRUD).
-* [ ] Garantir as permissões administrativas via RLS no Supabase.
+* [x] Criar o painel administrativo (`AdminService.ts`).
+* [x] Implementar aprovação e rejeição de solicitações de produtores.
+* [x] Criar a tela de gerenciamento de produtores (suspensão temporária e exclusão).
+* [x] Implementar moderação de eventos (correção e remoção).
+* [x] Criar o gerenciamento de categorias (CRUD).
+* [x] Implementar funções de proteção e permissões administrativas via RLS no Supabase (execução/validação necessária no projeto de destino).
 
 ### **Etapa 6 — Finalização e testes**
 
