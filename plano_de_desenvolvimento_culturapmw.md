@@ -181,12 +181,14 @@ src/
 ├── services/                   # Camada de integração e persistência
 │   ├── supabase.ts             # Cliente Supabase
 │   ├── EventoService.ts        # Consultas públicas e hidratação de objetos Evento/Produtor
+│   ├── LocalizacaoService.ts   # Regiões, validação e persistência de endereços
 │   └── ServicoCEP.ts           # Interface ServicoCEP e integração ViaCEP
 │
 ├── components/
 │   ├── layout/                 # PublicLayout, AppHeader, AppFooter
 │   ├── eventos/                # EventoCard, EventosFiltros
-│   ├── formularios/            # (Etapas 3 e 4)
+│   ├── formularios/            # Formulários reutilizáveis
+│   │   └── LocalizacaoEventoForm.vue # Seção de localização (RF06)
 │   └── ui/                     # (Etapas 3 a 5)
 │
 ├── views/
@@ -252,6 +254,8 @@ Atividades:
 ### **Etapa 4 — Gerenciamento de eventos**
 
 Objetivo: permitir o cadastro e o gerenciamento dos eventos pelos produtores aprovados.
+
+**RF06 — Gerenciamento de localização (módulo desenvolvido; integração com os formulários de evento pendente):** o componente `LocalizacaoEventoForm.vue`, o serviço `LocalizacaoService.ts`, a consulta ViaCEP e a migration de permissões de localização foram preparados. O formulário será incorporado às telas de publicação e edição durante a implementação do RF02, quando o evento já possuir um identificador para associação da localização.
 
 Atividades:
 
