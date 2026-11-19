@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import EventoCard from '../../components/eventos/EventoCard.vue'
 import type { Evento } from '../../models/Evento'
@@ -10,21 +10,38 @@ const route = useRoute()
 const produtor = ref<Produtor | null>(null)
 const eventos = ref<Evento[]>([])
 const carregando = ref(true)
+const erro = ref<string | null>(null)
+let sequenciaConsulta = 0
 
-onMounted(async () => {
+async function carregarPerfil() {
+  const sequenciaAtual = ++sequenciaConsulta
   const id = String(route.params.id ?? '')
+  produtor.value = null
+  eventos.value = []
+  erro.value = null
+  carregando.value = true
+
   try {
     const prod = await eventoService.buscarProdutorPorId(id)
+    if (sequenciaAtual !== sequenciaConsulta) return
     produtor.value = prod
+
     if (prod) {
-      eventos.value = await eventoService.listarEventosPorProdutor(id)
+      const listaEventos = await eventoService.listarEventosPorProdutor(id)
+      if (sequenciaAtual !== sequenciaConsulta) return
+      eventos.value = listaEventos
     }
   } catch (e) {
-    console.error(e)
+    if (sequenciaAtual !== sequenciaConsulta) return
+    erro.value = 'Não foi possível carregar o perfil do produtor. Tente novamente.'
+    console.error('[CulturaPMW] Erro ao carregar perfil público do produtor:', e)
   } finally {
-    carregando.value = false
+    if (sequenciaAtual === sequenciaConsulta) carregando.value = false
   }
-})
+}
+
+watch(() => route.params.id, () => void carregarPerfil(), { immediate: true })
+onBeforeUnmount(() => { sequenciaConsulta += 1 })
 </script>
 
 <template>
@@ -35,9 +52,14 @@ onMounted(async () => {
       Carregando perfil do produtor...
     </div>
 
+    <div v-else-if="erro" class="estado-box erro" role="alert">
+      <p>{{ erro }}</p>
+      <button type="button" class="acao-feedback" @click="carregarPerfil">Tentar novamente</button>
+    </div>
+
     <div v-else-if="!produtor" class="estado-box">
       <h2>Perfil indisponível</h2>
-      <p>O perfil deste produtor não está disponível no momento.</p>
+      <p>O perfil deste produtor não está mais disponível na plataforma.</p>
     </div>
 
     <template v-else>
@@ -52,7 +74,7 @@ onMounted(async () => {
         <h2>Eventos publicados por {{ produtor.nome }}</h2>
 
         <div v-if="eventos.length === 0" class="estado-box">
-          Nenhum evento ativo no momento.
+          Nenhum evento publicado está disponível no momento.
         </div>
 
         <div v-else class="eventos-grid">
@@ -90,6 +112,23 @@ onMounted(async () => {
   padding: 40px 20px;
   text-align: center;
   color: #475569;
+}
+
+.estado-box.erro {
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+
+.acao-feedback {
+  margin-top: 8px;
+  padding: 9px 14px;
+  border: 0;
+  border-radius: 7px;
+  background: #1154d9;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
 }
 
 .produtor-header {

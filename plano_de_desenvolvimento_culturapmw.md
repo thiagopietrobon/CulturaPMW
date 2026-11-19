@@ -65,10 +65,10 @@ O desenvolvimento das interfaces será dividido em quatro áreas principais.
 
 | Tela | Arquivo | Status | Descrição |
 | :--- | :--- | :---: | :--- |
-| Página inicial | `HomeView.vue` | Concluída | Apresentação da plataforma, atalhos rápidos e feed cronológico de eventos. |
-| Busca e filtros | `EventosFiltros.vue` | Concluída | Pesquisa por termo e filtros por categoria, região e gratuidade. |
-| Detalhes do evento | `EventoDetalhesView.vue` | Concluída | Informações completas sobre um evento, links externos e links de mapa. |
-| Perfil do produtor | `ProdutorPerfilView.vue` | Concluída | Informações públicas sobre o responsável pelo evento e suas atrações. |
+| Página inicial | `HomeView.vue` | Código implementado; validar | Feed cronológico, atalhos de hoje/fim de semana, carregamento, erro, estado vazio e atualização segura dos resultados. |
+| Busca e filtros | `EventosFiltros.vue` | Código implementado; validar | Pesquisa por termos e filtros combinados por múltiplas categorias, múltiplas regiões e gratuidade. |
+| Detalhes do evento | `EventoDetalhesView.vue` | Código implementado; validar | Informações do evento, situação, preço, endereço, links externos, produtor e estado de indisponibilidade após expiração. |
+| Perfil do produtor | `ProdutorPerfilView.vue` | Código implementado; validar | Dados públicos do produtor e seus eventos ainda disponíveis, com estados de carregamento, erro e ausência de conteúdo. |
 
 ### **3.2. Área de autenticação**
 
@@ -176,7 +176,7 @@ src/
 │   ├── Regiao.ts
 │   ├── Endereco.ts             # Encapsula endereço e geração de links de mapa
 │   ├── LinkExterno.ts
-│   └── Evento.ts               # Regras de visibilidade e conclusão automática
+│   └── Evento.ts               # Entidade de domínio e representação da situação do evento
 │
 ├── services/                   # Camada de integração e persistência
 │   ├── supabase.ts             # Cliente Supabase
@@ -223,7 +223,7 @@ Atividades:
 * [x] Implementar as classes de domínio em `src/models/` (`Usuario`, `Produtor`, `Administrador`, `Categoria`, `Regiao`, `Endereco`, `LinkExterno`, `Evento`).
 * [x] Implementar os serviços iniciais (`EventoService.ts` e `ServicoCEP.ts`) e atualizar a documentação (`README.md`).
 
-### **Etapa 2 — Desenvolvimento da área pública (Concluída)**
+### **Etapa 2 — Desenvolvimento da área pública (Código implementado; validação integrada pendente)**
 
 Objetivo: permitir que qualquer pessoa consulte os eventos disponíveis.
 
@@ -235,6 +235,11 @@ Atividades:
 * [x] Criar a página de detalhes do evento (`EventoDetalhesView.vue`) com links externos e rotas para Google Maps/Waze.
 * [x] Desenvolver a apresentação do perfil público dos produtores (`ProdutorPerfilView.vue`).
 * [x] Registrar rotas públicas no Vue Router e adaptar as telas públicas para dispositivos móveis.
+* [x] Integrar RF03 (feed cronológico, eventos de hoje e final de semana) à `vw_eventos_publicos`.
+* [x] Integrar RF04 (pesquisa e filtros combinados) com seleção de múltiplas categorias e regiões, além de gratuidade.
+* [x] Integrar RF05 (detalhes, links externos e perfil público do produtor) à camada de serviços.
+* [x] Corrigir atualização das telas públicas ao navegar entre IDs diferentes e impedir respostas antigas de sobrescreverem pesquisas recentes.
+* [ ] Validar RF03, RF04 e RF05 com eventos reais no Supabase, incluindo evento concluído e evento expirado após 24 horas.
 
 ### **Etapa 3 — Autenticação e área do produtor (Código implementado; migração pendente)**
 
@@ -282,7 +287,19 @@ Atividades:
 * [x] Criar o gerenciamento de categorias (CRUD).
 * [x] Implementar funções de proteção e permissões administrativas via RLS no Supabase (execução/validação necessária no projeto de destino).
 
-### **Etapa 6 — Finalização e testes**
+### **Etapa 6 — Situação automática dos eventos**
+
+**RF09 — Gerenciar situação dos eventos (código e migration implementados; agendamento e testes integrados pendentes):** a função `culturapmw_concluir_eventos_encerrados()` atualiza para `CONCLUIDO` os eventos ativos cujo `data_fim` foi atingido. A migration `202611180006_rf09_situacao_eventos.sql` atualiza a view pública para retirar eventos ao completar 24 horas do encerramento e tenta agendar a função a cada minuto com `pg_cron`, quando disponível. Os registros não são apagados fisicamente; permanecem no histórico interno. A tela pública de detalhes já apresenta conteúdo indisponível quando o evento não está mais na view.
+
+Atividades:
+
+* [x] Implementar a atualização persistente da situação de `ATIVO` para `CONCLUIDO` por função no banco.
+* [x] Atualizar a view pública para remover eventos ao completar 24 horas do encerramento.
+* [x] Manter o histórico dos eventos encerrados fora das listagens públicas.
+* [ ] Confirmar que o agendamento `pg_cron` foi criado e está executando no Supabase de destino.
+* [ ] Testar o ciclo completo com eventos de teste e validar a indisponibilidade do link após 24 horas.
+
+### **Etapa 7 — Finalização e testes**
 
 Objetivo: revisar a aplicação e preparar uma versão funcional para apresentação.
 

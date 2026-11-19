@@ -242,8 +242,14 @@ export class AdminService {
       if (produtor) produtor.profile = extrairRelacao(produtor.profile)
       const localizacao = extrairRelacao(item.localizacao)
       if (localizacao) localizacao.regiao = extrairRelacao(localizacao.regiao)
+      const situacaoEfetiva: SituacaoEventoAdmin =
+        item.situacao === 'ATIVO' && new Date(item.data_fim) <= new Date()
+          ? 'CONCLUIDO'
+          : item.situacao
+
       return {
         ...item,
+        situacao: situacaoEfetiva,
         categoria: extrairRelacao(item.categoria),
         produtor,
         localizacao,

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import EventoCard from '../../components/eventos/EventoCard.vue'
 import EventosFiltros from '../../components/eventos/EventosFiltros.vue'
 import type { Categoria } from '../../models/Categoria'
@@ -13,36 +13,73 @@ const regioes = ref<Regiao[]>([])
 
 const carregando = ref(true)
 const erro = ref<string | null>(null)
-
 const filtros = ref<FiltrosEventos>({
   busca: '',
-  categoriaId: null,
-  regiaoId: null,
+  categoriaIds: [],
+  regiaoIds: [],
   gratuito: 'todos',
   periodo: 'todos'
 })
 
+let timerBusca: ReturnType<typeof setTimeout> | null = null
+let sequenciaConsulta = 0
+
+const mensagemVazia = computed(() => {
+  if (filtros.value.periodo === 'hoje') {
+    return 'Não há eventos programados para hoje com os filtros selecionados.'
+  }
+  if (filtros.value.periodo === 'fim-de-semana') {
+    return 'Não há eventos disponíveis para este final de semana com os filtros selecionados.'
+  }
+  return 'Nenhum evento encontrado para os critérios selecionados.'
+})
+
+const possuiFiltros = computed(() => Boolean(
+  filtros.value.busca?.trim()
+  || filtros.value.categoriaIds?.length
+  || filtros.value.regiaoIds?.length
+  || filtros.value.gratuito !== 'todos'
+  || filtros.value.periodo !== 'todos'
+))
+
 async function carregarEventos() {
+  const sequenciaAtual = ++sequenciaConsulta
   carregando.value = true
   erro.value = null
+
   try {
-    eventos.value = await eventoService.listarPublicos(filtros.value)
+    const resultado = await eventoService.listarPublicos(filtros.value)
+    if (sequenciaAtual !== sequenciaConsulta) return
+    eventos.value = resultado
   } catch (e) {
+    if (sequenciaAtual !== sequenciaConsulta) return
     erro.value = 'Não foi possível carregar a agenda de eventos no momento.'
-    console.error(e)
+    console.error('[CulturaPMW] Erro ao carregar agenda pública:', e)
   } finally {
-    carregando.value = false
+    if (sequenciaAtual === sequenciaConsulta) carregando.value = false
   }
 }
 
-let timerBusca: ReturnType<typeof setTimeout> | null = null
+function limparFiltros() {
+  filtros.value = {
+    busca: '',
+    categoriaIds: [],
+    regiaoIds: [],
+    gratuito: 'todos',
+    periodo: 'todos'
+  }
+}
 
 watch(
   filtros,
   () => {
+    // Invalida respostas antigas imediatamente, evitando que uma busca anterior
+    // sobrescreva o resultado dos filtros mais recentes.
+    sequenciaConsulta += 1
+    carregando.value = true
     if (timerBusca) clearTimeout(timerBusca)
     timerBusca = setTimeout(() => {
-      carregarEventos()
+      void carregarEventos()
     }, 250)
   },
   { deep: true }
@@ -57,9 +94,14 @@ onMounted(async () => {
     categorias.value = cats
     regioes.value = regs
   } catch (e) {
-    console.error('Erro ao carregar filtros:', e)
+    console.error('[CulturaPMW] Erro ao carregar opções dos filtros:', e)
   }
   await carregarEventos()
+})
+
+onBeforeUnmount(() => {
+  if (timerBusca) clearTimeout(timerBusca)
+  sequenciaConsulta += 1
 })
 </script>
 
@@ -76,19 +118,23 @@ onMounted(async () => {
       :regioes="regioes"
     />
 
-    <div v-if="carregando" class="estado-feedback">
+    <div v-if="carregando" class="estado-feedback" role="status" aria-live="polite">
       Carregando eventos...
     </div>
 
-    <div v-else-if="erro" class="estado-feedback erro">
-      {{ erro }}
+    <div v-else-if="erro" class="estado-feedback erro" role="alert">
+      <p>{{ erro }}</p>
+      <button type="button" class="acao-feedback" @click="carregarEventos">Tentar novamente</button>
     </div>
 
     <div v-else-if="eventos.length === 0" class="estado-feedback">
-      Nenhum evento encontrado para os critérios selecionados.
+      <p>{{ mensagemVazia }}</p>
+      <button v-if="possuiFiltros" type="button" class="acao-feedback" @click="limparFiltros">
+        Limpar filtros
+      </button>
     </div>
 
-    <section v-else class="eventos-grid">
+    <section v-else class="eventos-grid" aria-label="Eventos disponíveis em Palmas">
       <EventoCard
         v-for="evento in eventos"
         :key="evento.id"
@@ -141,8 +187,22 @@ onMounted(async () => {
   font-weight: 500;
 }
 
+.estado-feedback p {
+  margin: 0 0 12px;
+}
+
 .estado-feedback.erro {
   color: #b91c1c;
   border-color: #fecaca;
+}
+
+.acao-feedback {
+  padding: 9px 14px;
+  border: 0;
+  border-radius: 7px;
+  background: #1154d9;
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
 }
 </style>

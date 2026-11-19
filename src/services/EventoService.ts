@@ -9,8 +9,8 @@ import type { DadosLocalizacaoEvento } from './LocalizacaoService'
 
 export interface FiltrosEventos {
   busca?: string
-  categoriaId?: number | null
-  regiaoId?: number | null
+  categoriaIds?: number[]
+  regiaoIds?: number[]
   gratuito?: 'todos' | 'gratuitos' | 'pagos'
   periodo?: 'todos' | 'hoje' | 'fim-de-semana'
 }
@@ -54,6 +54,11 @@ function extrairRelacao<T>(valor: T | T[] | null | undefined): T | null {
   return Array.isArray(valor) ? valor[0] ?? null : valor ?? null
 }
 
+/** Mantém termos com vírgulas, aspas e parênteses como um único valor no filtro PostgREST. */
+function escaparValorPostgrest(valor: string): string {
+  return `"${valor.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`
+}
+
 export class EventoService {
   private mapearParaEvento(row: Record<string, any>, links: LinkExterno[] = []): Evento {
     const categoria = new Categoria(row.categoria_id, row.categoria_nome)
@@ -94,25 +99,25 @@ export class EventoService {
     })
   }
 
-  private obterIntervaloHoje(): { inicio: string; fim: string } {
+  private obterIntervaloHoje(): { inicio: string; fimExclusivo: string } {
     const agora = new Date()
-    const inicio = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate(), 0, 0, 0)
-    const fim = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate(), 23, 59, 59)
-    return { inicio: inicio.toISOString(), fim: fim.toISOString() }
+    const inicio = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate())
+    const fimExclusivo = new Date(inicio)
+    fimExclusivo.setDate(fimExclusivo.getDate() + 1)
+    return { inicio: inicio.toISOString(), fimExclusivo: fimExclusivo.toISOString() }
   }
 
-  private obterIntervaloFimDeSemana(): { inicio: string; fim: string } {
+  private obterIntervaloFimDeSemana(): { inicio: string; fimExclusivo: string } {
     const agora = new Date()
     const diaSemana = agora.getDay()
-    const sabado = new Date(agora)
-    sabado.setDate(diaSemana === 0 ? agora.getDate() - 1 : agora.getDate() + (6 - diaSemana))
-    sabado.setHours(0, 0, 0, 0)
+    // De segunda a sábado, considera o próximo sábado; no domingo, o sábado de ontem.
+    const diasAteSabado = diaSemana === 0 ? -1 : 6 - diaSemana
+    const sabado = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate())
+    sabado.setDate(sabado.getDate() + diasAteSabado)
 
-    const domingo = new Date(sabado)
-    domingo.setDate(sabado.getDate() + 1)
-    domingo.setHours(23, 59, 59, 999)
-
-    return { inicio: sabado.toISOString(), fim: domingo.toISOString() }
+    const segunda = new Date(sabado)
+    segunda.setDate(segunda.getDate() + 2)
+    return { inicio: sabado.toISOString(), fimExclusivo: segunda.toISOString() }
   }
 
   public async listarPublicos(filtros: FiltrosEventos = {}): Promise<Evento[]> {
@@ -122,28 +127,36 @@ export class EventoService {
       .order('data_inicio', { ascending: true })
 
     if (filtros.busca && filtros.busca.trim() !== '') {
-      const termo = filtros.busca.trim()
-      query = query.or(`titulo.ilike.%${termo}%,descricao.ilike.%${termo}%,bairro.ilike.%${termo}%`)
+      const termo = escaparValorPostgrest(`%${filtros.busca.trim()}%`)
+      query = query.or([
+        `titulo.ilike.${termo}`,
+        `descricao.ilike.${termo}`,
+        `bairro.ilike.${termo}`,
+        `logradouro.ilike.${termo}`,
+        `categoria_nome.ilike.${termo}`,
+        `regiao_nome.ilike.${termo}`,
+        `produtor_nome.ilike.${termo}`
+      ].join(','))
     }
-    if (filtros.categoriaId) query = query.eq('categoria_id', filtros.categoriaId)
-    if (filtros.regiaoId) query = query.eq('regiao_id', filtros.regiaoId)
+    if (filtros.categoriaIds?.length) query = query.in('categoria_id', filtros.categoriaIds)
+    if (filtros.regiaoIds?.length) query = query.in('regiao_id', filtros.regiaoIds)
     if (filtros.gratuito === 'gratuitos') query = query.eq('gratuito', true)
     if (filtros.gratuito === 'pagos') query = query.eq('gratuito', false)
 
     if (filtros.periodo === 'hoje') {
-      const { inicio, fim } = this.obterIntervaloHoje()
-      query = query.gte('data_inicio', inicio).lte('data_inicio', fim)
+      const { inicio, fimExclusivo } = this.obterIntervaloHoje()
+      query = query.gte('data_inicio', inicio).lt('data_inicio', fimExclusivo)
     } else if (filtros.periodo === 'fim-de-semana') {
-      const { inicio, fim } = this.obterIntervaloFimDeSemana()
-      query = query.gte('data_inicio', inicio).lte('data_inicio', fim)
+      const { inicio, fimExclusivo } = this.obterIntervaloFimDeSemana()
+      query = query.gte('data_inicio', inicio).lt('data_inicio', fimExclusivo)
     }
 
     const { data, error } = await query
     if (error) throw error
 
-    return (data ?? [])
-      .map((row) => this.mapearParaEvento(row))
-      .filter((evento) => evento.estaVisivel())
+    // A view pública já aplica aprovação, suspensão, ocultação e expiração de 24 horas.
+    // Não repetimos essa regra no cliente, cujo relógio pode estar incorreto.
+    return (data ?? []).map((row) => this.mapearParaEvento(row))
   }
 
   public async buscarPorId(id: string): Promise<Evento | null> {
@@ -167,8 +180,8 @@ export class EventoService {
       (l) => new LinkExterno(l.tipo as TipoLink, l.url, l.id)
     )
 
-    const evento = this.mapearParaEvento(row, links)
-    return evento.estaVisivel() ? evento : null
+    // A consulta parte da view pública; se o evento não estiver disponível, row será null.
+    return this.mapearParaEvento(row, links)
   }
 
   public async listarCategorias(): Promise<Categoria[]> {
@@ -222,9 +235,8 @@ export class EventoService {
 
     if (error) throw error
 
-    return (data ?? [])
-      .map((row) => this.mapearParaEvento(row))
-      .filter((evento) => evento.estaVisivel())
+    // A view já restringe o resultado aos eventos públicos e ainda disponíveis.
+    return (data ?? []).map((row) => this.mapearParaEvento(row))
   }
 
   /** Lista todos os eventos do produtor, inclusive ocultos e encerrados, na área autenticada. */
