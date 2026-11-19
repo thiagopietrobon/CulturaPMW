@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import type { Evento } from '../../models/Evento'
 import { eventoService } from '../../services/EventoService'
@@ -16,17 +16,29 @@ function formatarDataCompleta(data: Date): string {
   }).format(data)
 }
 
-onMounted(async () => {
+let sequenciaConsulta = 0
+
+async function carregarEvento() {
+  const sequenciaAtual = ++sequenciaConsulta
   const id = String(route.params.id ?? '')
+  evento.value = null
+  erro.value = null
+  carregando.value = true
+
   try {
-    evento.value = await eventoService.buscarPorId(id)
+    evento.value = id ? await eventoService.buscarPorId(id) : null
   } catch (e) {
-    erro.value = 'Não foi possível carregar os dados do evento.'
-    console.error(e)
+    if (sequenciaAtual !== sequenciaConsulta) return
+    erro.value = 'Não foi possível carregar os dados do evento. Tente novamente.'
+    console.error('[CulturaPMW] Erro ao carregar detalhes do evento:', e)
   } finally {
-    carregando.value = false
+    if (sequenciaAtual === sequenciaConsulta) carregando.value = false
   }
-})
+}
+
+// A mesma tela pode ser reutilizada quando o usuário navega entre dois eventos.
+watch(() => route.params.id, () => void carregarEvento(), { immediate: true })
+onBeforeUnmount(() => { sequenciaConsulta += 1 })
 </script>
 
 <template>
@@ -37,13 +49,15 @@ onMounted(async () => {
       Carregando informações do evento...
     </div>
 
-    <div v-else-if="erro" class="estado-box erro">
-      {{ erro }}
+    <div v-else-if="erro" class="estado-box erro" role="alert">
+      <p>{{ erro }}</p>
+      <button type="button" class="acao-feedback" @click="carregarEvento">Tentar novamente</button>
     </div>
 
     <div v-else-if="!evento" class="estado-box">
       <h2>Conteúdo indisponível</h2>
-      <p>Este evento não foi encontrado, já foi encerrado há mais de 24 horas ou foi removido.</p>
+      <p>Este evento não foi encontrado, foi removido ou não está mais disponível para consulta.</p>
+      <RouterLink to="/" class="acao-feedback link-voltar">Voltar para a agenda</RouterLink>
     </div>
 
     <article v-else class="evento-artigo">
@@ -147,6 +161,26 @@ onMounted(async () => {
 .estado-box.erro {
   color: #b91c1c;
   border-color: #fecaca;
+}
+
+.acao-feedback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 8px;
+  padding: 9px 14px;
+  border: 0;
+  border-radius: 7px;
+  background: #1154d9;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.link-voltar {
+  margin-top: 14px;
 }
 
 .evento-artigo {

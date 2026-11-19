@@ -51,7 +51,8 @@ export class Evento {
     this.produtor = props.produtor
     this.linksExternos = props.linksExternos ?? []
 
-    this.concluirAutomaticamente()
+    // A situação efetiva vem da vw_eventos_publicos/ banco de dados.
+    // Não usamos o relógio do navegador para sobrescrever o estado recebido.
   }
 
   public concluirAutomaticamente(): void {
@@ -62,7 +63,7 @@ export class Evento {
 
   public removerAposEncerramento(): boolean {
     const limite24h = new Date(this.dataFim.getTime() + 24 * 60 * 60 * 1000)
-    return new Date() > limite24h
+    return new Date() >= limite24h
   }
 
   public estaVisivel(): boolean {

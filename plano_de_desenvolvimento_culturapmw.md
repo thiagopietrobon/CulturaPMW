@@ -65,10 +65,10 @@ O desenvolvimento das interfaces será dividido em quatro áreas principais.
 
 | Tela | Arquivo | Status | Descrição |
 | :--- | :--- | :---: | :--- |
-| Página inicial | `HomeView.vue` | Concluída | Apresentação da plataforma, atalhos rápidos e feed cronológico de eventos. |
-| Busca e filtros | `EventosFiltros.vue` | Concluída | Pesquisa por termo e filtros por categoria, região e gratuidade. |
-| Detalhes do evento | `EventoDetalhesView.vue` | Concluída | Informações completas sobre um evento, links externos e links de mapa. |
-| Perfil do produtor | `ProdutorPerfilView.vue` | Concluída | Informações públicas sobre o responsável pelo evento e suas atrações. |
+| Página inicial | `HomeView.vue` | Código implementado; validar | Feed cronológico, atalhos de hoje/fim de semana, carregamento, erro, estado vazio e atualização segura dos resultados. |
+| Busca e filtros | `EventosFiltros.vue` | Código implementado; validar | Pesquisa por termos e filtros combinados por múltiplas categorias, múltiplas regiões e gratuidade. |
+| Detalhes do evento | `EventoDetalhesView.vue` | Código implementado; validar | Informações do evento, situação, preço, endereço, links externos, produtor e estado de indisponibilidade após expiração. |
+| Perfil do produtor | `ProdutorPerfilView.vue` | Código implementado; validar | Dados públicos do produtor e seus eventos ainda disponíveis, com estados de carregamento, erro e ausência de conteúdo. |
 
 ### **3.2. Área de autenticação**
 
@@ -84,9 +84,9 @@ O desenvolvimento das interfaces será dividido em quatro áreas principais.
 | Tela | Descrição |
 | :--- | :--- |
 | Painel do produtor | Visão geral dos eventos cadastrados. |
-| Meus eventos | Listagem dos eventos do produtor. |
-| Cadastro de evento | Formulário para criação de eventos. |
-| Edição de evento | Alteração das informações de um evento. |
+| Meus eventos | Implementada no RF02: listagem dos eventos do produtor, situação e ações de gerenciamento. |
+| Cadastro de evento | Implementada no RF02: categoria, datas, entrada, imagem, localização e links externos. |
+| Edição de evento | Implementada no RF02: formulário preenchido com os dados de um evento próprio. |
 | Perfil do produtor | Gerenciamento das informações públicas. |
 
 ### **3.4. Área administrativa**
@@ -176,17 +176,19 @@ src/
 │   ├── Regiao.ts
 │   ├── Endereco.ts             # Encapsula endereço e geração de links de mapa
 │   ├── LinkExterno.ts
-│   └── Evento.ts               # Regras de visibilidade e conclusão automática
+│   └── Evento.ts               # Entidade de domínio e representação da situação do evento
 │
 ├── services/                   # Camada de integração e persistência
 │   ├── supabase.ts             # Cliente Supabase
 │   ├── EventoService.ts        # Consultas públicas e hidratação de objetos Evento/Produtor
+│   ├── LocalizacaoService.ts   # Regiões, validação e persistência de endereços
 │   └── ServicoCEP.ts           # Interface ServicoCEP e integração ViaCEP
 │
 ├── components/
 │   ├── layout/                 # PublicLayout, AppHeader, AppFooter
 │   ├── eventos/                # EventoCard, EventosFiltros
-│   ├── formularios/            # (Etapas 3 e 4)
+│   ├── formularios/            # Formulários reutilizáveis
+│   │   └── LocalizacaoEventoForm.vue # Seção de localização (RF06)
 │   └── ui/                     # (Etapas 3 a 5)
 │
 ├── views/
@@ -221,7 +223,7 @@ Atividades:
 * [x] Implementar as classes de domínio em `src/models/` (`Usuario`, `Produtor`, `Administrador`, `Categoria`, `Regiao`, `Endereco`, `LinkExterno`, `Evento`).
 * [x] Implementar os serviços iniciais (`EventoService.ts` e `ServicoCEP.ts`) e atualizar a documentação (`README.md`).
 
-### **Etapa 2 — Desenvolvimento da área pública (Concluída)**
+### **Etapa 2 — Desenvolvimento da área pública (Código implementado; validação integrada pendente)**
 
 Objetivo: permitir que qualquer pessoa consulte os eventos disponíveis.
 
@@ -233,47 +235,71 @@ Atividades:
 * [x] Criar a página de detalhes do evento (`EventoDetalhesView.vue`) com links externos e rotas para Google Maps/Waze.
 * [x] Desenvolver a apresentação do perfil público dos produtores (`ProdutorPerfilView.vue`).
 * [x] Registrar rotas públicas no Vue Router e adaptar as telas públicas para dispositivos móveis.
+* [x] Integrar RF03 (feed cronológico, eventos de hoje e final de semana) à `vw_eventos_publicos`.
+* [x] Integrar RF04 (pesquisa e filtros combinados) com seleção de múltiplas categorias e regiões, além de gratuidade.
+* [x] Integrar RF05 (detalhes, links externos e perfil público do produtor) à camada de serviços.
+* [x] Corrigir atualização das telas públicas ao navegar entre IDs diferentes e impedir respostas antigas de sobrescreverem pesquisas recentes.
+* [ ] Validar RF03, RF04 e RF05 com eventos reais no Supabase, incluindo evento concluído e evento expirado após 24 horas.
 
-### **Etapa 3 — Autenticação e área do produtor (Próxima etapa)**
+### **Etapa 3 — Autenticação e área do produtor (Código implementado; migração pendente)**
 
 Objetivo: permitir que produtores solicitem acesso e gerenciem suas atividades.
 
 Atividades:
 
-* [ ] Configurar políticas RLS de inserção/atualização em `profiles` e `produtores` no Supabase.
-* [ ] Implementar cadastro, login, logout e recuperação de senha com Supabase Auth (`AuthService.ts` e `useAuth.ts`).
-* [ ] Criar o formulário de solicitação de cadastro como produtor (`CadastroProdutorView.vue`).
-* [ ] Implementar o fluxo de verificação de status (`AGUARDANDO_APROVACAO`, `APROVADO`, `REPROVADO`, `SUSPENSO`).
-* [ ] Criar a tela de aguardando aprovação (`AguardandoAprovacaoView.vue`) e login (`LoginView.vue`).
-* [ ] Desenvolver o painel do produtor (`PainelProdutorView.vue`) e a edição de perfil (`EditarPerfilProdutorView.vue`).
-* [ ] Implementar guardas de rota (`navigation guards`) no Vue Router para controle de acesso às áreas restritas.
+* [ ] Aplicar a migration RF01 para configurar as políticas RLS de leitura/atualização do próprio perfil e dados do produtor; restringir dados pessoais e criar view pública segura.
+* [x] Implementar cadastro, login, logout e recuperação/redefinição de senha com Supabase Auth (`AuthService.ts` e `useAuth.ts`).
+* [x] Criar o formulário de solicitação de cadastro como produtor (`CadastroProdutorView.vue`).
+* [x] Implementar o fluxo de verificação de status (`AGUARDANDO_APROVACAO`, `APROVADO`, `REPROVADO`, `SUSPENSO`).
+* [x] Criar a tela de aguardando aprovação (`AguardandoAprovacaoView.vue`) e login (`LoginView.vue`).
+* [x] Desenvolver o painel do produtor (`PainelProdutorView.vue`) e a edição de perfil (`PerfilProdutorView.vue`).
+* [x] Implementar guardas de rota (`navigation guards`) no Vue Router para controle de acesso às áreas restritas.
+* [ ] Aplicar a função `produtor_excluir_propria_conta` para permitir a exclusão da própria conta com remoção em cascata dos registros associados.
 
 ### **Etapa 4 — Gerenciamento de eventos**
 
 Objetivo: permitir o cadastro e o gerenciamento dos eventos pelos produtores aprovados.
 
+**RF06 — Gerenciamento de localização (integrado ao RF02):** o componente `LocalizacaoEventoForm.vue`, o serviço `LocalizacaoService.ts` e a consulta ViaCEP foram incorporados aos formulários de publicação e edição. A localização é salva junto ao evento e associada por `evento_id`.
+
 Atividades:
 
-* [ ] Criar o formulário de cadastro de eventos com preenchimento automático de endereço via `ViaCepService`.
-* [ ] Implementar edição e exclusão de eventos.
-* [ ] Integrar o envio de imagens ao Supabase Storage (`eventos-imagens`).
-* [ ] Gerenciar os vínculos com categorias, regiões e links externos.
-* [ ] Implementar validações dos formulários.
+* [x] Criar o formulário de cadastro de eventos com preenchimento automático de endereço via `ServicoCEP`.
+* [x] Implementar edição e exclusão de eventos do próprio produtor.
+* [x] Integrar o envio de imagens ao Supabase Storage (`eventos-imagens`).
+* [x] Gerenciar os vínculos com categorias, regiões e links externos.
+* [x] Implementar validações dos formulários e da operação transacional no banco.
+* [x] Criar a rota e a tela de gerenciamento dos eventos do produtor.
+* [ ] Executar a migration RF02 no projeto Supabase de destino e validar os fluxos integrados.
 
-### **Etapa 5 — Área administrativa**
+**RF02 — Gerenciamento de eventos (código implementado; validar no Supabase):** a área do produtor permite listar, publicar, editar e excluir eventos. O salvamento utiliza a função `produtor_salvar_evento`, que grava evento, localização e links externos na mesma transação. As imagens são enviadas ao bucket público `eventos-imagens`, com upload restrito ao produtor aprovado. A migration `202611180005_rf02_gerenciar_eventos.sql` configura a função, as políticas RLS e o bucket.
+
+### **Etapa 5 — Área administrativa (Implementada; validar no banco de destino)**
 
 Objetivo: disponibilizar ferramentas para gerenciamento e moderação da plataforma.
 
 Atividades:
 
-* [ ] Criar o painel administrativo (`AdminService.ts`).
-* [ ] Implementar aprovação e rejeição de solicitações de produtores.
-* [ ] Criar a tela de gerenciamento de produtores (suspensão temporária e exclusão).
-* [ ] Implementar moderação de eventos (correção e remoção).
-* [ ] Criar o gerenciamento de categorias (CRUD).
-* [ ] Garantir as permissões administrativas via RLS no Supabase.
+* [x] Criar o painel administrativo (`AdminService.ts`).
+* [x] Implementar aprovação e rejeição de solicitações de produtores.
+* [x] Criar a tela de gerenciamento de produtores (suspensão temporária e exclusão).
+* [x] Implementar moderação de eventos (correção e remoção).
+* [x] Criar o gerenciamento de categorias (CRUD).
+* [x] Implementar funções de proteção e permissões administrativas via RLS no Supabase (execução/validação necessária no projeto de destino).
 
-### **Etapa 6 — Finalização e testes**
+### **Etapa 6 — Situação automática dos eventos**
+
+**RF09 — Gerenciar situação dos eventos (código e migration implementados; agendamento e testes integrados pendentes):** a função `culturapmw_concluir_eventos_encerrados()` atualiza para `CONCLUIDO` os eventos ativos cujo `data_fim` foi atingido. A migration `202611180006_rf09_situacao_eventos.sql` atualiza a view pública para retirar eventos ao completar 24 horas do encerramento e tenta agendar a função a cada minuto com `pg_cron`, quando disponível. Os registros não são apagados fisicamente; permanecem no histórico interno. A tela pública de detalhes já apresenta conteúdo indisponível quando o evento não está mais na view.
+
+Atividades:
+
+* [x] Implementar a atualização persistente da situação de `ATIVO` para `CONCLUIDO` por função no banco.
+* [x] Atualizar a view pública para remover eventos ao completar 24 horas do encerramento.
+* [x] Manter o histórico dos eventos encerrados fora das listagens públicas.
+* [ ] Confirmar que o agendamento `pg_cron` foi criado e está executando no Supabase de destino.
+* [ ] Testar o ciclo completo com eventos de teste e validar a indisponibilidade do link após 24 horas.
+
+### **Etapa 7 — Finalização e testes**
 
 Objetivo: revisar a aplicação e preparar uma versão funcional para apresentação.
 
