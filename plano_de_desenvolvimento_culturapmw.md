@@ -333,4 +333,4 @@ Ao final do desenvolvimento, esperamos ter uma aplicação web funcional que per
 * Aos produtores aprovados, cadastrar e gerenciar seus eventos.
 * Aos administradores, controlar o acesso de produtores e moderar o conteúdo da plataforma.
 
-A aplicação será desenvolvida com Vue.js, TypeScript (POO) e Supabase, mantendo uma arquitetura simples, organizada e fiel à modelagem acadêmica.
+A aplicação será desenvolvida com Vue.js, TypeScript (POO) e Supabase, mantendo uma arquitetura simples, organizada e fiel à modelagem acadêmica.](https://github.com/thiagopietrobon/CulturaPMW/tree/Pedro-Napp)
