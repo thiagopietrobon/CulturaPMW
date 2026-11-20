@@ -1,3 +1,4 @@
+
 import { createRouter, createWebHistory } from 'vue-router'
 import PublicLayout from '../components/layout/PublicLayout.vue'
 import HomeView from '../views/public/HomeView.vue'
@@ -22,6 +23,7 @@ import { authService } from '../services/AuthService'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
+
   routes: [
     {
       path: '/',
@@ -32,61 +34,122 @@ const router = createRouter({
         { path: 'produtores/:id', name: 'produtor-perfil', component: ProdutorPerfilView }
       ]
     },
-    { path: '/produtor/cadastro', name: 'produtor-cadastro', component: CadastroProdutorView, meta: { guestOnly: true } },
-    { path: '/login', name: 'login', component: LoginView, meta: { guestOnly: true } },
-    // Mantém compatibilidade com links antigos de login enviados ou salvos.
+
+    {
+      path: '/produtor/cadastro',
+      name: 'produtor-cadastro',
+      component: CadastroProdutorView,
+      meta: {
+        guestOnly: true,
+        transition: 'auth'
+      }
+    },
+
+    {
+      path: '/login',
+      name: 'login',
+      component: LoginView,
+      meta: {
+        guestOnly: true,
+        transition: 'auth'
+      }
+    },
+
+    // Compatibilidade com os endereços antigos.
     { path: '/produtor/login', redirect: (to) => ({ name: 'login', query: to.query }) },
     { path: '/admin/login', redirect: (to) => ({ name: 'login', query: to.query }) },
-    { path: '/produtor/recuperar-senha', name: 'produtor-recuperar-senha', component: RecuperacaoSenhaView },
-    { path: '/produtor/redefinir-senha', name: 'produtor-redefinir-senha', component: RedefinirSenhaView },
+
+    {
+      path: '/produtor/recuperar-senha',
+      name: 'produtor-recuperar-senha',
+      component: RecuperacaoSenhaView,
+      meta: { transition: 'auth' }
+    },
+
+    {
+      path: '/produtor/redefinir-senha',
+      name: 'produtor-redefinir-senha',
+      component: RedefinirSenhaView,
+      meta: { transition: 'auth' }
+    },
+
     {
       path: '/produtor/aguardando-aprovacao',
       name: 'produtor-status',
       component: AguardandoAprovacaoView,
-      meta: { requiresProducer: true, allowedProducerStatuses: ['AGUARDANDO_APROVACAO'] }
+      meta: {
+        requiresProducer: true,
+        allowedProducerStatuses: ['AGUARDANDO_APROVACAO']
+      }
     },
+
     {
       path: '/produtor/reprovado',
       name: 'produtor-reprovado',
       component: StatusProdutorView,
-      meta: { requiresProducer: true, allowedProducerStatuses: ['REPROVADO'] }
+      meta: {
+        requiresProducer: true,
+        allowedProducerStatuses: ['REPROVADO']
+      }
     },
+
     {
       path: '/produtor/suspenso',
       name: 'produtor-suspenso',
       component: StatusProdutorView,
-      meta: { requiresProducer: true, allowedProducerStatuses: ['SUSPENSO'] }
+      meta: {
+        requiresProducer: true,
+        allowedProducerStatuses: ['SUSPENSO']
+      }
     },
+
     {
       path: '/produtor/painel',
       name: 'produtor-painel',
       component: PainelProdutorView,
-      meta: { requiresProducer: true, requiresApprovedProducer: true }
+      meta: {
+        requiresProducer: true,
+        requiresApprovedProducer: true
+      }
     },
+
     {
       path: '/produtor/perfil',
       name: 'produtor-perfil-edicao',
       component: PerfilProdutorView,
       meta: { requiresProducer: true }
     },
+
     {
       path: '/produtor/eventos',
       name: 'produtor-eventos',
       component: MeusEventosView,
-      meta: { requiresProducer: true, requiresApprovedProducer: true }
+      meta: {
+        requiresProducer: true,
+        requiresApprovedProducer: true
+      }
     },
+
     {
       path: '/produtor/eventos/novo',
       name: 'produtor-evento-novo',
       component: FormularioEventoView,
-      meta: { requiresProducer: true, requiresApprovedProducer: true }
+      meta: {
+        requiresProducer: true,
+        requiresApprovedProducer: true
+      }
     },
+
     {
       path: '/produtor/eventos/:id/editar',
       name: 'produtor-evento-editar',
       component: FormularioEventoView,
-      meta: { requiresProducer: true, requiresApprovedProducer: true }
+      meta: {
+        requiresProducer: true,
+        requiresApprovedProducer: true
+      }
     },
+
     {
       path: '/admin',
       component: AdminLayout,
@@ -105,6 +168,7 @@ function destinoStatusProdutor(status: string): { name: string } {
   if (status === 'AGUARDANDO_APROVACAO') return { name: 'produtor-status' }
   if (status === 'REPROVADO') return { name: 'produtor-reprovado' }
   if (status === 'SUSPENSO') return { name: 'produtor-suspenso' }
+
   return { name: 'produtor-painel' }
 }
 
@@ -112,7 +176,10 @@ router.beforeEach(async (to) => {
   if (to.meta.requiresAdmin) {
     try {
       const administrador = await authService.administradorAtual()
-      if (!administrador) return { name: 'login', query: { redirect: to.fullPath } }
+
+      if (!administrador) {
+        return { name: 'login', query: { redirect: to.fullPath } }
+      }
     } catch (error) {
       console.error('Não foi possível validar a sessão administrativa:', error)
       return { name: 'login' }
@@ -122,8 +189,14 @@ router.beforeEach(async (to) => {
   if (to.meta.guestOnly) {
     try {
       const usuario = await authService.usuarioAtual()
-      if (usuario?.role === 'admin') return { name: 'admin-dashboard' }
-      if (usuario?.role === 'produtor') return destinoStatusProdutor(usuario.status)
+
+      if (usuario?.role === 'admin') {
+        return { name: 'admin-dashboard' }
+      }
+
+      if (usuario?.role === 'produtor') {
+        return destinoStatusProdutor(usuario.status)
+      }
     } catch (error) {
       console.error('Não foi possível validar a sessão atual:', error)
     }
@@ -132,14 +205,17 @@ router.beforeEach(async (to) => {
   if (to.meta.requiresProducer) {
     try {
       const produtor = await authService.produtorAtual()
+
       if (!produtor) {
         return { name: 'login', query: { redirect: to.fullPath } }
       }
 
       const statusPermitidos = to.meta.allowedProducerStatuses as string[] | undefined
+
       if (statusPermitidos && !statusPermitidos.includes(produtor.status)) {
         return destinoStatusProdutor(produtor.status)
       }
+
       if (to.meta.requiresApprovedProducer && produtor.status !== 'APROVADO') {
         return destinoStatusProdutor(produtor.status)
       }

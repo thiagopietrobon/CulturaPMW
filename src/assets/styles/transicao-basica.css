@@ -1,0 +1,46 @@
+/* CulturaPMW — Cross Dissolve com dimensões estáveis */
+
+#app {
+  position: relative;
+  width: 100%;
+  min-height: 100dvh;
+}
+
+/* As duas telas utilizam a mesma área de transição */
+.login-page,
+.produtor-auth-page {
+  position: relative;
+  width: 100%;
+  min-height: 100dvh;
+}
+
+/* Dissolução suave */
+.auth-dissolve-enter-active,
+.auth-dissolve-leave-active {
+  transition: opacity 600ms ease-in-out;
+  will-change: opacity;
+}
+
+.auth-dissolve-enter-from,
+.auth-dissolve-leave-to {
+  opacity: 0;
+}
+
+/* A tela anterior fica sobreposta durante a saída */
+.auth-dissolve-leave-active {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100dvh;
+  min-height: 100dvh;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Respeita a preferência de acessibilidade */
+@media (prefers-reduced-motion: reduce) {
+  .auth-dissolve-enter-active,
+  .auth-dissolve-leave-active {
+    transition: none;
+  }
+}
