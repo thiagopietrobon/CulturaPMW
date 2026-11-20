@@ -2,12 +2,14 @@
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { authService, type PerfilProdutorAutenticado } from '../../services/AuthService'
-import '../../assets/styles/produtor.css'
+import logoCulturaPMW from '../../assets/sgv/culturapmw-logo.png'
+import '../../assets/styles/login-unificado.css'
 
 const router = useRouter()
 const route = useRoute()
 const email = ref('')
 const senha = ref('')
+const mostrarSenha = ref(false)
 const erro = ref('')
 const carregando = ref(false)
 
@@ -51,33 +53,119 @@ async function entrar() {
 </script>
 
 <template>
-  <main class="produtor-auth-page">
-    <section class="produtor-auth-card">
-      <RouterLink to="/" class="produtor-brand">Cultura<span>PMW</span></RouterLink>
-      <p class="produtor-eyebrow">ACESSO À PLATAFORMA</p>
-      <h1>Entrar no CulturaPMW</h1>
-      <p class="produtor-intro">Informe seu e-mail e sua senha. Identificaremos seu perfil e direcionaremos você à área correspondente.</p>
+  <main class="login-page">
+    <section class="login-card" aria-labelledby="login-title">
+      <RouterLink to="/" class="login-logo-link" aria-label="CulturaPMW — voltar para a página inicial">
+        <img
+          class="login-logo"
+          :src="logoCulturaPMW"
+          alt="CulturaPMW — Eventos que conectam Palmas"
+          width="560"
+          height="163"
+        />
+      </RouterLink>
 
-      <form class="produtor-form" @submit.prevent="entrar">
-        <label class="produtor-field">
-          <span>E-mail</span>
-          <input v-model="email" type="email" autocomplete="username" required placeholder="voce@exemplo.com" />
+      <div class="login-divider" aria-hidden="true"></div>
+
+      <header class="login-heading">
+        <h1 id="login-title">Bem-vindo(a)!</h1>
+        <p>Faça login para acessar sua conta</p>
+      </header>
+
+      <form class="login-form" @submit.prevent="entrar">
+        <label class="login-field">
+          <span class="login-sr-only">E-mail</span>
+          <span class="login-input-wrap">
+            <svg class="login-input-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3.25" y="5" width="17.5" height="14" rx="2.5" />
+              <path d="m4.5 7 7.5 6 7.5-6" />
+            </svg>
+            <input
+              v-model.trim="email"
+              type="email"
+              name="email"
+              autocomplete="username"
+              inputmode="email"
+              placeholder="E-mail"
+              aria-label="E-mail"
+              required
+            />
+          </span>
         </label>
-        <label class="produtor-field">
-          <span>Senha</span>
-          <input v-model="senha" type="password" autocomplete="current-password" required placeholder="Sua senha" />
+
+        <label class="login-field">
+          <span class="login-sr-only">Senha</span>
+          <span class="login-input-wrap">
+            <svg class="login-input-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="4.25" y="10" width="15.5" height="11" rx="2.2" />
+              <path d="M7.5 10V7a4.5 4.5 0 0 1 9 0v3" />
+              <path d="M12 14.2v2.5" />
+              <circle cx="12" cy="14" r=".75" class="login-icon-fill" />
+            </svg>
+            <input
+              v-model="senha"
+              :type="mostrarSenha ? 'text' : 'password'"
+              name="password"
+              autocomplete="current-password"
+              placeholder="Senha"
+              aria-label="Senha"
+              required
+            />
+            <button
+              class="login-password-toggle"
+              type="button"
+              :aria-label="mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'"
+              :aria-pressed="mostrarSenha"
+              @click="mostrarSenha = !mostrarSenha"
+            >
+              <svg v-if="!mostrarSenha" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M2.5 12s3.2-6 9.5-6 9.5 6 9.5 6-3.2 6-9.5 6-9.5-6-9.5-6Z" />
+                <circle cx="12" cy="12" r="2.7" />
+                <path d="m3 3 18 18" />
+              </svg>
+              <svg v-else viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M2.5 12s3.2-6 9.5-6 9.5 6 9.5 6-3.2 6-9.5 6-9.5-6-9.5-6Z" />
+                <circle cx="12" cy="12" r="2.7" />
+              </svg>
+            </button>
+          </span>
         </label>
-        <div class="produtor-form-inline">
-          <RouterLink to="/produtor/recuperar-senha">Esqueci minha senha</RouterLink>
+
+        <div class="login-form-tools">
+          <RouterLink to="/produtor/recuperar-senha" class="login-forgot-link">
+            Esqueci minha senha?
+          </RouterLink>
         </div>
-        <p v-if="erro" class="produtor-alert produtor-alert-error" role="alert">{{ erro }}</p>
-        <button class="produtor-button produtor-button-primary" type="submit" :disabled="carregando">
-          {{ carregando ? 'Verificando acesso...' : 'Entrar' }}
+
+        <p v-if="erro" class="login-error" role="alert">{{ erro }}</p>
+
+        <button class="login-submit" type="submit" :disabled="carregando">
+          <svg v-if="!carregando" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M10 17 15 12 10 7" />
+            <path d="M15 12H3" />
+            <path d="M12 3h6a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3h-6" />
+          </svg>
+          <span>{{ carregando ? 'Verificando acesso...' : 'Entrar' }}</span>
         </button>
       </form>
 
-      <p class="produtor-auth-footer">Ainda não possui cadastro? <RouterLink to="/produtor/cadastro">Cadastre-se como produtor</RouterLink></p>
-      <RouterLink to="/" class="produtor-back-link">← Voltar para a agenda</RouterLink>
+      <div class="login-tagline" aria-label="Descubra, Participe, Conecte-se">
+        <span class="login-tagline-line" aria-hidden="true"></span>
+        <p>Descubra <span>•</span> Participe <span>•</span> Conecte-se</p>
+        <span class="login-tagline-line" aria-hidden="true"></span>
+      </div>
+
+      <RouterLink
+        to="/"
+        class="login-card-home-link"
+        aria-label="Voltar para a agenda pública do CulturaPMW"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M19 12H5" />
+          <path d="m12 19-7-7 7-7" />
+        </svg>
+        <span>Voltar para a agenda</span>
+      </RouterLink>
     </section>
   </main>
 </template>
