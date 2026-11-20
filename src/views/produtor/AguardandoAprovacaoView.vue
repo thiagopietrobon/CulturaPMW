@@ -47,7 +47,7 @@ async function sair() {
   erro.value = ''
   try {
     await authService.sair()
-    await router.replace({ name: 'produtor-login' })
+      await router.replace({ name: 'login' })
   } catch (error) {
     console.error('[CulturaPMW] Falha ao encerrar sessão:', error)
     erro.value = 'Não foi possível encerrar sua sessão. Tente novamente.'

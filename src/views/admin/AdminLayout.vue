@@ -16,7 +16,7 @@ async function sair() {
   saindo.value = true
   try {
     await authService.sair()
-    await router.replace({ name: 'admin-login' })
+    await router.replace({ name: 'login' })
   } catch (error) {
     console.error(error)
     window.alert('Não foi possível encerrar a sessão.')

@@ -59,7 +59,7 @@ async function cadastrar() {
 
       <div v-if="sucesso" class="produtor-alert produtor-alert-success" role="status">
         {{ sucesso }}
-        <RouterLink class="produtor-alert-link" to="/produtor/login">Ir para o login</RouterLink>
+        <RouterLink class="produtor-alert-link" to="/login">Ir para o login</RouterLink>
       </div>
 
       <form v-else class="produtor-form" @submit.prevent="cadastrar">
@@ -101,7 +101,7 @@ async function cadastrar() {
         </button>
       </form>
 
-      <p class="produtor-auth-footer">Já possui cadastro? <RouterLink to="/produtor/login">Entrar</RouterLink></p>
+      <p class="produtor-auth-footer">Já possui cadastro? <RouterLink to="/login">Entrar</RouterLink></p>
       <RouterLink to="/" class="produtor-back-link">← Voltar para a agenda</RouterLink>
     </section>
   </main>

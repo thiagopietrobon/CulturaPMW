@@ -14,7 +14,6 @@ import StatusProdutorView from '../views/produtor/StatusProdutorView.vue'
 import MeusEventosView from '../views/produtor/MeusEventosView.vue'
 import FormularioEventoView from '../views/produtor/FormularioEventoView.vue'
 import AdminLayout from '../views/admin/AdminLayout.vue'
-import AdminLoginView from '../views/admin/AdminLoginView.vue'
 import AdminDashboardView from '../views/admin/AdminDashboardView.vue'
 import AdminProdutoresView from '../views/admin/AdminProdutoresView.vue'
 import AdminEventosView from '../views/admin/AdminEventosView.vue'
@@ -33,8 +32,11 @@ const router = createRouter({
         { path: 'produtores/:id', name: 'produtor-perfil', component: ProdutorPerfilView }
       ]
     },
-    { path: '/produtor/cadastro', name: 'produtor-cadastro', component: CadastroProdutorView, meta: { guestOnlyProducer: true } },
-    { path: '/produtor/login', name: 'produtor-login', component: LoginView, meta: { guestOnlyProducer: true } },
+    { path: '/produtor/cadastro', name: 'produtor-cadastro', component: CadastroProdutorView, meta: { guestOnly: true } },
+    { path: '/login', name: 'login', component: LoginView, meta: { guestOnly: true } },
+    // Mantém compatibilidade com links antigos de login enviados ou salvos.
+    { path: '/produtor/login', redirect: (to) => ({ name: 'login', query: to.query }) },
+    { path: '/admin/login', redirect: (to) => ({ name: 'login', query: to.query }) },
     { path: '/produtor/recuperar-senha', name: 'produtor-recuperar-senha', component: RecuperacaoSenhaView },
     { path: '/produtor/redefinir-senha', name: 'produtor-redefinir-senha', component: RedefinirSenhaView },
     {
@@ -86,12 +88,6 @@ const router = createRouter({
       meta: { requiresProducer: true, requiresApprovedProducer: true }
     },
     {
-      path: '/admin/login',
-      name: 'admin-login',
-      component: AdminLoginView,
-      meta: { guestOnlyAdmin: true }
-    },
-    {
       path: '/admin',
       component: AdminLayout,
       meta: { requiresAdmin: true },
@@ -113,38 +109,43 @@ function destinoStatusProdutor(status: string): { name: string } {
 }
 
 router.beforeEach(async (to) => {
-  if (to.meta.requiresAdmin || to.meta.guestOnlyAdmin) {
+  if (to.meta.requiresAdmin) {
     try {
       const administrador = await authService.administradorAtual()
-      if (to.meta.requiresAdmin && !administrador) {
-        return { name: 'admin-login', query: { redirect: to.fullPath } }
-      }
-      if (to.meta.guestOnlyAdmin && administrador) return { name: 'admin-dashboard' }
+      if (!administrador) return { name: 'login', query: { redirect: to.fullPath } }
     } catch (error) {
       console.error('Não foi possível validar a sessão administrativa:', error)
-      if (to.meta.requiresAdmin) return { name: 'admin-login' }
+      return { name: 'login' }
     }
   }
 
-  if (to.meta.requiresProducer || to.meta.guestOnlyProducer) {
+  if (to.meta.guestOnly) {
+    try {
+      const usuario = await authService.usuarioAtual()
+      if (usuario?.role === 'admin') return { name: 'admin-dashboard' }
+      if (usuario?.role === 'produtor') return destinoStatusProdutor(usuario.status)
+    } catch (error) {
+      console.error('Não foi possível validar a sessão atual:', error)
+    }
+  }
+
+  if (to.meta.requiresProducer) {
     try {
       const produtor = await authService.produtorAtual()
-      if (to.meta.requiresProducer && !produtor) {
-        return { name: 'produtor-login', query: { redirect: to.fullPath } }
+      if (!produtor) {
+        return { name: 'login', query: { redirect: to.fullPath } }
       }
-      if (to.meta.guestOnlyProducer && produtor) return destinoStatusProdutor(produtor.status)
-      if (to.meta.requiresProducer && produtor) {
-        const statusPermitidos = to.meta.allowedProducerStatuses as string[] | undefined
-        if (statusPermitidos && !statusPermitidos.includes(produtor.status)) {
-          return destinoStatusProdutor(produtor.status)
-        }
-        if (to.meta.requiresApprovedProducer && produtor.status !== 'APROVADO') {
-          return destinoStatusProdutor(produtor.status)
-        }
+
+      const statusPermitidos = to.meta.allowedProducerStatuses as string[] | undefined
+      if (statusPermitidos && !statusPermitidos.includes(produtor.status)) {
+        return destinoStatusProdutor(produtor.status)
+      }
+      if (to.meta.requiresApprovedProducer && produtor.status !== 'APROVADO') {
+        return destinoStatusProdutor(produtor.status)
       }
     } catch (error) {
       console.error('Não foi possível validar a sessão do produtor:', error)
-      if (to.meta.requiresProducer) return { name: 'produtor-login' }
+      return { name: 'login' }
     }
   }
 })

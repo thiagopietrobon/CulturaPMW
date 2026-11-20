@@ -152,7 +152,7 @@ npm run dev
 
 ## 🛡️ Área administrativa
 
-O painel administrativo está disponível em **`/admin/login`** e contempla visão geral, gerenciamento de produtores, moderação de eventos e gerenciamento de categorias.
+O acesso à plataforma é realizado pela tela única **`/login`**. Após a autenticação, o sistema identifica o perfil e direciona administradores ao painel administrativo e produtores à sua área correspondente. O painel administrativo contempla visão geral, gerenciamento de produtores, moderação de eventos e gerenciamento de categorias.
 
 Antes do primeiro acesso, execute a migração `supabase/migrations/202611180001_admin_area.sql` no SQL Editor do Supabase e configure o perfil da conta responsável com `profiles.role = 'admin'`. Consulte [`docs/ADMIN_SETUP.md`](docs/ADMIN_SETUP.md) para o passo a passo.
 
@@ -160,6 +160,6 @@ Antes do primeiro acesso, execute a migração `supabase/migrations/202611180001
 
 O fluxo de contas de produtores (RF01) utiliza o Supabase Auth e a migration `supabase/migrations/202611180002_rf01_contas_produtor.sql`. A migration deve ser executada depois do schema inicial e da migration administrativa. Ela cria o perfil e a solicitação pendente por trigger, restringe a leitura dos dados pessoais, disponibiliza a view pública `vw_produtores_publicos`, limita consultas públicas à `vw_eventos_publicos` e oferece a RPC de exclusão da própria conta.
 
-No Supabase, configure em **Authentication → URL Configuration** os endereços de redirecionamento usados em desenvolvimento: `http://localhost:5173/produtor/login` e `http://localhost:5173/produtor/redefinir-senha`. Adicione também as URLs equivalentes do domínio publicado.
+No Supabase, configure em **Authentication → URL Configuration** os endereços de redirecionamento usados em desenvolvimento: `http://localhost:5173/login` e `http://localhost:5173/produtor/redefinir-senha`. Adicione também as URLs equivalentes do domínio publicado. Os caminhos antigos `/produtor/login` e `/admin/login` continuam redirecionando para a tela unificada por compatibilidade.
 
 Consulte `docs/RF01_CADASTRO_PRODUTOR.md` para a sequência de migração e os detalhes do fluxo.

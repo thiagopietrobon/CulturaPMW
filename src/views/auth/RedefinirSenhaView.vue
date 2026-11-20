@@ -23,7 +23,7 @@ async function salvar() {
     await authService.atualizarSenha(senha.value)
     sucesso.value = 'Senha atualizada com sucesso. Você já pode entrar na plataforma.'
     await authService.sair()
-    window.setTimeout(() => void router.replace({ name: 'produtor-login' }), 1200)
+    window.setTimeout(() => void router.replace({ name: 'login' }), 1200)
   } catch (error) {
     console.error(error)
     erro.value = error instanceof Error ? error.message : 'Não foi possível atualizar a senha. Solicite um novo link.'

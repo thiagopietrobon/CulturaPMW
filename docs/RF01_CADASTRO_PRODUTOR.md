@@ -25,7 +25,7 @@ Ela pressupõe os enums `user_role` e `status_produtor`, as tabelas `profiles` e
 
 No Supabase, abra **Authentication → URL Configuration** e inclua como Redirect URL:
 
-- `http://localhost:5173/produtor/login` (confirmação de cadastro em desenvolvimento)
+- `http://localhost:5173/login` (confirmação de cadastro em desenvolvimento)
 - `http://localhost:5173/produtor/redefinir-senha` (recuperação de senha em desenvolvimento)
 - A URL equivalente do domínio publicado, quando houver.
 

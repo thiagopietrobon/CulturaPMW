@@ -3,14 +3,18 @@ import { supabase } from './supabase'
 
 export type StatusProdutor = 'AGUARDANDO_APROVACAO' | 'APROVADO' | 'REPROVADO' | 'SUSPENSO'
 
-export interface PerfilAutenticado {
+interface DadosPerfilAutenticado {
   id: string
   nome: string
   email: string
-  role: string
+  role: 'admin' | 'produtor'
 }
 
-export interface PerfilProdutorAutenticado extends PerfilAutenticado {
+export interface PerfilAutenticado extends DadosPerfilAutenticado {
+  role: 'admin'
+}
+
+export interface PerfilProdutorAutenticado extends DadosPerfilAutenticado {
   role: 'produtor'
   cpf_cnpj: string
   telefone: string
@@ -18,6 +22,8 @@ export interface PerfilProdutorAutenticado extends PerfilAutenticado {
   status: StatusProdutor
   suspenso_ate: string | null
 }
+
+export type UsuarioAutenticado = PerfilAutenticado | PerfilProdutorAutenticado
 
 export interface DadosCadastroProdutor {
   nome: string
@@ -79,7 +85,7 @@ function validarTelefone(valor: string): boolean {
 }
 
 export class AuthService {
-  private async buscarPerfil(user: User): Promise<PerfilAutenticado | null> {
+  private async buscarPerfil(user: User): Promise<DadosPerfilAutenticado | null> {
     const { data, error } = await supabase
       .from('profiles')
       .select('id, nome, email, role')
@@ -87,23 +93,45 @@ export class AuthService {
       .maybeSingle()
 
     if (error) throw error
-    return data as PerfilAutenticado | null
+    return data as DadosPerfilAutenticado | null
   }
 
-  public async entrarComoAdministrador(email: string, senha: string): Promise<PerfilAutenticado> {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password: senha })
-    if (error) throw error
+  /** Realiza um único login e identifica a área de destino pelo perfil salvo no banco. */
+  public async entrar(email: string, senha: string): Promise<UsuarioAutenticado> {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.trim().toLowerCase(),
+      password: senha
+    })
+
+    if (error) {
+      const mensagem = error.message.toLowerCase()
+      if (mensagem.includes('invalid login credentials')) {
+        throw new Error('E-mail ou senha incorretos.')
+      }
+      if (mensagem.includes('email not confirmed')) {
+        throw new Error('Confirme seu endereço de e-mail antes de entrar.')
+      }
+      throw error
+    }
 
     try {
       const perfil = await this.buscarPerfil(data.user)
-      if (!perfil || perfil.role !== 'admin') {
-        await supabase.auth.signOut()
-        throw new Error('Esta conta não possui permissão de administrador.')
+      if (!perfil) {
+        throw new Error('Não foi possível localizar um perfil vinculado a esta conta.')
       }
-      return perfil
-    } catch (error) {
+
+      if (perfil.role === 'admin') return perfil as PerfilAutenticado
+
+      if (perfil.role === 'produtor') {
+        const produtor = await this.buscarProdutorAutenticado(data.user, perfil)
+        if (produtor) return produtor
+        throw new Error('Esta conta não possui um cadastro de produtor válido.')
+      }
+
+      throw new Error('Esta conta não possui permissão para acessar a plataforma.')
+    } catch (erro) {
       await supabase.auth.signOut()
-      throw error
+      throw erro
     }
   }
 
@@ -147,7 +175,7 @@ export class AuthService {
           telefone,
           descricao: dados.descricao?.trim() || null
         },
-        emailRedirectTo: `${window.location.origin}/produtor/login`
+        emailRedirectTo: `${window.location.origin}/login`
       }
     })
 
@@ -193,30 +221,11 @@ export class AuthService {
     return { aguardandoConfirmacaoEmail: !data.session }
   }
 
-  public async entrarComoProdutor(email: string, senha: string): Promise<PerfilProdutorAutenticado> {
-    const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password: senha })
-    if (error) {
-      if (error.message.toLowerCase().includes('invalid login credentials')) {
-        throw new Error('E-mail ou senha incorretos.')
-      }
-      if (error.message.toLowerCase().includes('email not confirmed')) {
-        throw new Error('Confirme seu endereço de e-mail antes de entrar.')
-      }
-      throw error
-    }
-
-    try {
-      const produtor = await this.buscarProdutorAutenticado(data.user)
-      if (!produtor) throw new Error('Esta conta não possui um cadastro de produtor válido.')
-      return produtor
-    } catch (error) {
-      await supabase.auth.signOut()
-      throw error
-    }
-  }
-
-  private async buscarProdutorAutenticado(user: User): Promise<PerfilProdutorAutenticado | null> {
-    const perfil = await this.buscarPerfil(user)
+  private async buscarProdutorAutenticado(
+    user: User,
+    perfilExistente?: DadosPerfilAutenticado | null
+  ): Promise<PerfilProdutorAutenticado | null> {
+    const perfil = perfilExistente ?? await this.buscarPerfil(user)
     if (!perfil || perfil.role !== 'produtor') return null
 
     const { data, error } = await supabase
@@ -244,7 +253,20 @@ export class AuthService {
     if (!data.session?.user) return null
 
     const perfil = await this.buscarPerfil(data.session.user)
-    return perfil?.role === 'admin' ? perfil : null
+    return perfil?.role === 'admin' ? perfil as PerfilAutenticado : null
+  }
+
+  /** Retorna o perfil autenticado, independentemente de ser administrador ou produtor. */
+  public async usuarioAtual(): Promise<UsuarioAutenticado | null> {
+    const { data, error } = await supabase.auth.getSession()
+    if (error) throw error
+    if (!data.session?.user) return null
+
+    const perfil = await this.buscarPerfil(data.session.user)
+    if (!perfil) return null
+    if (perfil.role === 'admin') return perfil as PerfilAutenticado
+    if (perfil.role === 'produtor') return this.buscarProdutorAutenticado(data.session.user, perfil)
+    return null
   }
 
   public async atualizarPerfilProdutor(dados: DadosEdicaoPerfilProdutor): Promise<{ emailPendente: boolean }> {

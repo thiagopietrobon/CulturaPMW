@@ -42,7 +42,7 @@ async function enviar() {
           {{ carregando ? 'Enviando...' : 'Enviar link de recuperação' }}
         </button>
       </form>
-      <RouterLink to="/produtor/login" class="produtor-back-link">← Voltar para o login</RouterLink>
+      <RouterLink to="/login" class="produtor-back-link">← Voltar para o login</RouterLink>
     </section>
   </main>
 </template>
