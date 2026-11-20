@@ -1,0 +1,389 @@
+/* CulturaPMW — estilo compartilhado para recuperação e redefinição de senha.
+   O cenário de Palmas é fornecido pela camada persistente do App.vue.
+   Este arquivo estiliza somente o conteúdo da tela.
+*/
+:root {
+  --auth-senha-blue: #1154d9;
+  --auth-senha-blue-dark: #08428c;
+  --auth-senha-blue-light: #117cd9;
+  --auth-senha-ink: #123d78;
+  --auth-senha-muted: #6f83a2;
+  --auth-senha-border: #d0dcef;
+  --auth-senha-danger: #b42332;
+}
+
+.senha-auth-page,
+.senha-auth-page * { box-sizing: border-box; }
+
+.senha-auth-page {
+  display: grid;
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  place-items: center;
+  padding: 24px 18px;
+  overflow-x: clip;
+  background: transparent;
+}
+
+.senha-auth-card {
+  display: flex;
+  width: min(100%, 520px);
+  flex-direction: column;
+  padding: 25px 34px 23px;
+  border: 1px solid rgb(255 255 255 / 94%);
+  border-radius: 25px;
+  background: rgb(255 255 255 / 95%);
+  box-shadow: 0 18px 54px rgb(8 46 99 / 23%), 0 3px 12px rgb(8 66 140 / 9%);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.senha-auth-logo-link {
+  display: flex;
+  width: 100%;
+  height: 76px;
+  flex: 0 0 76px;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 8px;
+  text-decoration: none;
+}
+
+.senha-auth-logo {
+  display: block;
+  width: min(100%, 440px);
+  height: 112px;
+  object-fit: contain;
+  object-position: center;
+}
+
+.senha-auth-logo-link:focus-visible,
+.senha-auth-footer a:focus-visible,
+.senha-auth-password-toggle:focus-visible,
+.senha-auth-submit:focus-visible {
+  outline: 3px solid rgb(17 124 217 / 35%);
+  outline-offset: 3px;
+}
+
+.senha-auth-divider {
+  width: 100%;
+  height: 1px;
+  margin: 0 0 14px;
+  border: 0;
+  background: #e8eef6;
+}
+
+.senha-auth-heading {
+  margin: 0 0 21px;
+  text-align: center;
+}
+
+.senha-auth-eyebrow {
+  display: block;
+  margin: 0 0 6px;
+  color: var(--auth-senha-blue-light);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .16em;
+}
+
+.senha-auth-heading h1 {
+  margin: 0;
+  color: var(--auth-senha-blue-dark);
+  font-size: clamp(25px, 3.2vh, 31px);
+  font-weight: 800;
+  letter-spacing: -.035em;
+  line-height: 1.14;
+}
+
+.senha-auth-heading p {
+  max-width: 390px;
+  margin: 8px auto 0;
+  color: var(--auth-senha-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.senha-auth-form { display: grid; gap: 13px; }
+
+.senha-auth-field {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+  color: var(--auth-senha-ink);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.senha-auth-field > label { padding-left: 2px; cursor: pointer; }
+
+.senha-auth-input-wrap {
+  display: flex;
+  width: 100%;
+  height: 55px;
+  min-width: 0;
+  align-items: center;
+  gap: 11px;
+  padding: 0 13px;
+  border: 1.5px solid var(--auth-senha-border);
+  border-radius: 12px;
+  background: #fff;
+  transition: border-color .16s ease, box-shadow .16s ease;
+}
+
+.senha-auth-input-wrap:focus-within {
+  border-color: var(--auth-senha-blue-light);
+  box-shadow: 0 0 0 3px rgb(17 124 217 / 12%);
+}
+
+.senha-auth-input-wrap.is-invalid {
+  border-color: #d84c5b;
+  background: #fffafa;
+}
+
+.senha-auth-input-wrap.is-invalid:focus-within {
+  box-shadow: 0 0 0 3px rgb(216 76 91 / 10%);
+}
+
+.senha-auth-input-wrap input {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--auth-senha-ink);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.senha-auth-input-wrap input::placeholder { color: #91a2bb; opacity: 1; }
+
+.senha-auth-password-toggle {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #557297;
+  cursor: pointer;
+}
+
+.senha-auth-password-toggle:hover {
+  background: #edf4ff;
+  color: var(--auth-senha-blue);
+}
+
+.senha-auth-password-toggle svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.9;
+}
+
+.senha-auth-hint {
+  margin: 0;
+  padding-left: 2px;
+  color: #8092ab;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.senha-auth-alert {
+  margin: 0;
+  padding: 11px 13px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.senha-auth-alert-error {
+  border-color: #f0b8b8;
+  background: #fff5f5;
+  color: #8f202c;
+}
+
+.senha-auth-alert-success {
+  border-color: #b9e2ca;
+  background: #f1fbf5;
+  color: #215d3b;
+}
+
+.senha-auth-alert-success strong {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 14px;
+}
+
+.senha-auth-alert-success p { margin: 0; }
+
+.senha-auth-submit {
+  display: flex;
+  width: 100%;
+  min-height: 54px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 2px;
+  padding: 12px 18px;
+  border: 0;
+  border-radius: 12px;
+  background: linear-gradient(110deg, #117cd9 0%, #1154d9 58%, #08428c 100%);
+  box-shadow: 0 7px 17px rgb(17 84 217 / 22%);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 800;
+  transition: transform .16s ease, box-shadow .16s ease, opacity .16s ease;
+}
+
+.senha-auth-submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgb(17 84 217 / 28%);
+}
+
+.senha-auth-submit:disabled { cursor: wait; opacity: .72; }
+
+/* Navegação em dois botões discretos, alinhados e centralizados sob o botão principal. */
+.senha-auth-footer {
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  justify-items: stretch;
+  gap: 10px 12px;
+  margin: auto 0;
+  padding-top: 15px;
+  border-top: 1px solid #edf2f8;
+  text-align: center;
+}
+
+.senha-auth-footer a {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 12px;
+  border: 1px solid #9fb7d5;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #ffffff 0%, #f1f6ff 100%);
+  box-shadow: 0 2px 7px rgb(8 66 140 / 9%);
+  color: var(--auth-senha-blue);
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.3;
+  text-align: center;
+  text-decoration: none;
+  transition: background .16s ease, border-color .16s ease, color .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+
+.senha-auth-footer a:hover {
+  transform: translateY(-1px);
+  border-color: #759bc9;
+  background: #eaf3ff;
+  box-shadow: 0 5px 12px rgb(17 84 217 / 12%);
+  color: var(--auth-senha-blue-dark);
+  text-decoration: none;
+}
+
+.senha-auth-footer a:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 3px rgb(8 66 140 / 9%);
+}
+
+@media (max-height: 780px) and (min-width: 701px) {
+  .senha-auth-logo-link { height: 58px; flex-basis: 58px; }
+  .senha-auth-logo { width: min(100%, 235px); height: 56px; }
+  .senha-auth-divider { margin-bottom: 9px; }
+  .senha-auth-heading { margin-bottom: 16px; }
+}
+
+@media (max-width: 600px) {
+  .senha-auth-page {
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: 18px 13px;
+  }
+
+  .senha-auth-card {
+    width: min(100%, 460px);
+    padding: 21px 21px 19px;
+    border-radius: 22px;
+  }
+
+  .senha-auth-logo-link { height: 62px; flex-basis: 62px; margin-bottom: 7px; }
+  .senha-auth-logo { width: min(100%, 235px); height: 60px; }
+  .senha-auth-divider { margin-bottom: 11px; }
+  .senha-auth-heading { margin-bottom: 18px; }
+  .senha-auth-heading h1 { font-size: clamp(24px, 6vw, 28px); }
+  .senha-auth-heading p { font-size: 13px; }
+  .senha-auth-input-wrap { height: 52px; }
+  .senha-auth-submit { min-height: 54px; font-size: 15px; }
+  .senha-auth-footer {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 16px;
+  }
+}
+
+@media (max-width: 380px) {
+  .senha-auth-card { padding: 18px 16px 16px; border-radius: 20px; }
+  .senha-auth-logo-link { height: 55px; flex-basis: 55px; }
+  .senha-auth-logo { width: min(100%, 210px); height: 53px; }
+  .senha-auth-heading h1 { font-size: 24px; }
+  .senha-auth-footer {
+    grid-template-columns: 1fr;
+    justify-items: stretch;
+    gap: 8px;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .senha-auth-card {
+    background: #fff;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .senha-auth-input-wrap,
+  .senha-auth-submit,
+  .senha-auth-footer a { transition: none; }
+}
+
+/* Mantém os campos uniformes quando o navegador restaura senhas salvas. */
+.senha-auth-input-wrap input:-webkit-autofill,
+.senha-auth-input-wrap input:-webkit-autofill:hover,
+.senha-auth-input-wrap input:-webkit-autofill:focus,
+.senha-auth-input-wrap input:-webkit-autofill:active {
+  -webkit-text-fill-color: var(--auth-senha-ink) !important;
+  caret-color: var(--auth-senha-ink);
+  -webkit-box-shadow: 0 0 0 1000px #fff inset !important;
+  box-shadow: 0 0 0 1000px #fff inset !important;
+  background-color: #fff !important;
+  border-radius: 8px;
+  transition: background-color 99999s ease-out 0s;
+}
+
+.senha-auth-input-wrap input:autofill {
+  color: var(--auth-senha-ink) !important;
+  background-color: #fff !important;
+  box-shadow: 0 0 0 1000px #fff inset !important;
+  border-radius: 8px;
+}

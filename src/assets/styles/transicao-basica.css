@@ -1,4 +1,5 @@
-/* CulturaPMW — Cross Dissolve com dimensões estáveis */
+
+/* CulturaPMW — Fundo persistente e Cross Dissolve */
 
 #app {
   position: relative;
@@ -6,38 +7,101 @@
   min-height: 100dvh;
 }
 
-/* As duas telas utilizam a mesma área de transição */
-.login-page,
-.produtor-auth-page {
+.app-shell {
   position: relative;
+  isolation: isolate;
+  width: 100%;
+  min-height: 100dvh;
+  background-color: transparent;
+}
+
+.app-shell--auth {
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+/* Fundo único, compartilhado entre Login, Cadastro e Recuperação */
+.auth-shared-background {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+
+  background-color: #ddecfa;
+
+  background-image:
+    linear-gradient(
+      180deg,
+      rgb(8 66 140 / 8%) 0%,
+      rgb(255 255 255 / 2%) 42%,
+      rgb(8 66 140 / 14%) 100%
+    ),
+    url('../sgv/login-Palmas.svg');
+
+  background-position: center, center 72%;
+  background-repeat: no-repeat;
+  background-size: cover, cover;
+}
+
+/* Conteúdo fica acima do cenário */
+.app-route-layer {
+  position: relative;
+  z-index: 1;
   width: 100%;
   min-height: 100dvh;
 }
 
-/* Dissolução suave */
-.auth-dissolve-enter-active,
-.auth-dissolve-leave-active {
-  transition: opacity 600ms ease-in-out;
-  will-change: opacity;
+/* Remove os fundos individuais das páginas de autenticação */
+.app-shell--auth .login-page,
+.app-shell--auth .produtor-auth-page {
+  background: transparent !important;
+  background-image: none !important;
 }
 
+/* Desativa o antigo fundo pseudo-elemento do login */
+.app-shell--auth .login-page::before,
+.app-shell--auth .produtor-auth-page::before {
+  display: none !important;
+  content: none !important;
+  background: none !important;
+}
+
+/* Cross Dissolve somente no conteúdo */
+.auth-dissolve-enter-active,
+.auth-dissolve-leave-active {
+  transition: opacity 700ms ease-in-out;
+}
+
+/* Entrada e saída */
 .auth-dissolve-enter-from,
 .auth-dissolve-leave-to {
   opacity: 0;
 }
 
-/* A tela anterior fica sobreposta durante a saída */
+/* Mantém a tela anterior sobreposta durante a saída */
 .auth-dissolve-leave-active {
   position: absolute;
-  inset: 0;
+  inset: 0 auto auto 0;
+  z-index: 2;
   width: 100%;
-  height: 100dvh;
-  min-height: 100dvh;
-  overflow: hidden;
   pointer-events: none;
 }
 
-/* Respeita a preferência de acessibilidade */
+/* A nova tela fica abaixo da anterior */
+.auth-dissolve-enter-active {
+  position: relative;
+  z-index: 1;
+}
+
+/* Ajuste do cenário em dispositivos móveis */
+@media (max-width: 600px) {
+  .auth-shared-background {
+    background-position: center, 23% 100%;
+    background-size: cover, auto 118%;
+  }
+}
+
+/* Acessibilidade */
 @media (prefers-reduced-motion: reduce) {
   .auth-dissolve-enter-active,
   .auth-dissolve-leave-active {

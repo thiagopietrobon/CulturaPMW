@@ -155,23 +155,15 @@ async function entrar() {
         </button>
       </form>
 
-
-      <div class="login-tagline" aria-label="Descubra, Participe, Conecte-se">
-        <span class="login-tagline-line" aria-hidden="true"></span>
-        <p>Descubra <span>•</span> Participe <span>•</span> Conecte-se</p>
-        <span class="login-tagline-line" aria-hidden="true"></span>
-      </div>
-
-      <RouterLink
-        to="/"
-        class="login-card-home-link"
-        aria-label="Voltar para a agenda pública do CulturaPMW"
-      >
+      <RouterLink to="/" class="cadastro-footer-action cadastro-home-action">
         <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M19 12H5" />
-          <path d="m12 19-7-7 7-7" />
+          <path d="m3 10 9-7 9 7" />
+          <path d="M5 9v11h14V9M9 20v-6h6v6" />
         </svg>
-        <span>Voltar para a agenda</span>
+        <span>
+          <strong>Voltar para a agenda</strong>
+          <small>Ver eventos do CulturaPMW</small>
+        </span>
       </RouterLink>
     </section>
   </main>

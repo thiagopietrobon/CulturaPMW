@@ -1,4 +1,8 @@
-/* Cadastro de produtor CulturaPMW — reaproveita os assets visuais do login. */
+/* CulturaPMW — cadastro de produtor.
+   Reaproveita os assets visuais do login.
+   O cenário de Palmas é fornecido pela camada compartilhada do App.vue.
+   CSS em src/assets/styles/; assets em src/assets/sgv/.
+*/
 :root {
   --cadastro-blue: #1154d9;
   --cadastro-blue-dark: #08428c;
@@ -9,19 +13,12 @@
   --cadastro-danger: #b42332;
 }
 
-html:has(.cadastro-page),
-body:has(.cadastro-page),
-#app:has(.cadastro-page) {
-  width: 100%;
-  min-height: 100%;
-  margin: 0;
-}
-
 .cadastro-page,
 .cadastro-page * {
   box-sizing: border-box;
 }
 
+/* Fundo persistente compartilhado pelo App.vue. */
 .cadastro-page {
   position: relative;
   isolation: isolate;
@@ -34,22 +31,7 @@ body:has(.cadastro-page),
   justify-content: center;
   padding: 22px;
   overflow-x: clip;
-  background-color: #ddecfa;
-  background-image:
-    linear-gradient(115deg, rgb(8 66 140 / 9%), rgb(255 255 255 / 14%) 50%, rgb(17 84 217 / 7%)),
-    url('../sgv/login-Palmas.svg');
-  background-position: center, center 66%;
-  background-size: cover, cover;
-  background-repeat: no-repeat;
-}
-
-.cadastro-page::before {
-  position: fixed;
-  z-index: -1;
-  inset: 0;
-  background: linear-gradient(180deg, rgb(242 247 255 / 8%), rgb(255 255 255 / 7%) 55%, rgb(8 66 140 / 9%));
-  content: '';
-  pointer-events: none;
+  background: transparent;
 }
 
 .cadastro-card {
@@ -81,9 +63,10 @@ body:has(.cadastro-page),
 
 .cadastro-logo {
   display: block;
-  width: min(100%, 270px);
-  height: 74px;
+  width: min(100%, 440px);
+  height: 112px;
   object-fit: contain;
+  object-position: center;
 }
 
 .cadastro-divider {
@@ -91,7 +74,7 @@ body:has(.cadastro-page),
   height: 1px;
   flex: 0 0 1px;
   margin: 8px 0 14px;
-  background: #dce5f0;
+  background: #e7edf5;
 }
 
 .cadastro-heading {
@@ -362,6 +345,7 @@ body:has(.cadastro-page),
   color: var(--cadastro-ink);
 }
 
+/* Botão principal: mantém o gradiente azul de ação primária. */
 .cadastro-submit {
   display: flex;
   width: 100%;
@@ -402,6 +386,7 @@ body:has(.cadastro-page),
   opacity: .7;
 }
 
+/* Ações secundárias: destaque discreto, sem competir com o botão principal. */
 .cadastro-footer {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -417,13 +402,15 @@ body:has(.cadastro-page),
   justify-content: center;
   gap: 11px;
   padding: 10px 14px;
-  border: 1px solid #c9d9ee;
+  border: 1px solid #8aa6c9;
   border-radius: 13px;
-  background: #f5f9ff;
+  background: linear-gradient(180deg, #f8fbff 0%, #eaf2fc 100%);
   color: var(--cadastro-blue-dark);
   text-align: left;
   text-decoration: none;
+  box-shadow: 0 4px 12px rgb(8 66 140 / 9%);
   transition: background .16s ease, border-color .16s ease, transform .16s ease, box-shadow .16s ease;
+  text-align: center;
 }
 
 .cadastro-footer-action svg {
@@ -431,7 +418,7 @@ body:has(.cadastro-page),
   height: 22px;
   flex: 0 0 22px;
   fill: none;
-  stroke: var(--cadastro-blue);
+  stroke: var(--cadastro-blue-dark);
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 1.8;
@@ -451,7 +438,7 @@ body:has(.cadastro-page),
 }
 
 .cadastro-footer-action small {
-  color: #7186a4;
+  color: #5f7594;
   font-size: 11px;
   font-weight: 500;
   line-height: 1.25;
@@ -459,59 +446,18 @@ body:has(.cadastro-page),
 
 .cadastro-footer-action:hover {
   transform: translateY(-1px);
-  border-color: #8fb5e6;
-  background: #edf5ff;
-  box-shadow: 0 5px 14px rgb(17 84 217 / 9%);
+  border-color: #547eae;
+  background: linear-gradient(180deg, #eff6ff 0%, #dceaff 100%);
+  box-shadow: 0 6px 15px rgb(8 66 140 / 14%);
 }
 
-.cadastro-login-action {
-  border-color: #1154d9;
-  background: linear-gradient(110deg, #117cd9 0%, #1154d9 65%, #08428c 100%);
-  box-shadow: 0 5px 14px rgb(17 84 217 / 16%);
-}
-
-.cadastro-login-action svg,
-.cadastro-login-action strong {
-  color: #fff;
-  stroke: #fff;
-}
-
-.cadastro-login-action small {
-  color: rgb(255 255 255 / 84%);
-}
-
-.cadastro-login-action:hover {
-  border-color: #08428c;
-  background: linear-gradient(110deg, #117cd9 0%, #1154d9 65%, #08428c 100%);
-  box-shadow: 0 8px 18px rgb(17 84 217 / 24%);
-}
-
-/* Botão "Voltar para a agenda": mesmo tratamento azul do acesso ao login. */
-.cadastro-home-action {
-  border-color: #1154d9;
-  background: linear-gradient(110deg, #117cd9 0%, #1154d9 65%, #08428c 100%);
-  box-shadow: 0 5px 14px rgb(17 84 217 / 16%);
-}
-
-.cadastro-home-action svg,
-.cadastro-home-action strong {
-  color: #fff;
-  stroke: #fff;
-}
-
-.cadastro-home-action small {
-  color: rgb(255 255 255 / 84%);
-}
-
-.cadastro-home-action:hover {
-  transform: translateY(-1px);
-  border-color: #08428c;
-  background: linear-gradient(110deg, #117cd9 0%, #1154d9 65%, #08428c 100%);
-  box-shadow: 0 8px 18px rgb(17 84 217 / 24%);
+.cadastro-footer-action:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgb(8 66 140 / 10%);
 }
 
 .cadastro-footer-action:focus-visible {
-  outline: 3px solid rgb(17 124 217 / 35%);
+  outline: 3px solid rgb(17 124 217 / 30%);
   outline-offset: 3px;
 }
 
@@ -586,21 +532,12 @@ body:has(.cadastro-page),
 }
 
 @media (max-width: 700px) {
-  html:has(.cadastro-page),
-  body:has(.cadastro-page),
-  #app:has(.cadastro-page) {
-    height: auto;
-    min-height: 100%;
-    overflow: auto;
-  }
-
   .cadastro-page {
     min-height: 100dvh;
     align-items: center;
     justify-content: flex-start;
-    padding: 18px 12px;
+    padding: 18px 12px max(18px, env(safe-area-inset-bottom));
     overflow-x: clip;
-    background-position: center, 58% center;
   }
 
   .cadastro-card {
@@ -622,7 +559,9 @@ body:has(.cadastro-page),
   .cadastro-field { font-size: 14px; }
   .cadastro-input-wrap input { font-size: 16px; }
   .cadastro-textarea-wrap textarea { font-size: 15px; }
-  .cadastro-field-hint, .cadastro-character-count, .cadastro-field-error { font-size: 12px; }
+  .cadastro-field-hint,
+  .cadastro-character-count,
+  .cadastro-field-error { font-size: 12px; }
   .cadastro-grid { grid-template-columns: minmax(0, 1fr); gap: 11px; }
   .cadastro-field-full { grid-column: auto; }
   .cadastro-input-wrap { height: 49px; }
@@ -635,7 +574,7 @@ body:has(.cadastro-page),
 }
 
 @media (max-width: 380px) {
-  .cadastro-page { padding: 12px 9px; }
+  .cadastro-page { padding: 12px 9px max(12px, env(safe-area-inset-bottom)); }
   .cadastro-card { padding: 15px 15px 14px; }
   .cadastro-logo-link { height: 55px; flex-basis: 55px; }
   .cadastro-logo { height: 53px; width: min(100%, 210px); }
@@ -643,49 +582,27 @@ body:has(.cadastro-page),
   .cadastro-heading p { font-size: 13px; }
   .cadastro-field { font-size: 13px; }
   .cadastro-input-wrap input { font-size: 15px; }
-  .cadastro-field-hint, .cadastro-character-count, .cadastro-field-error { font-size: 11px; }
+  .cadastro-field-hint,
+  .cadastro-character-count,
+  .cadastro-field-error { font-size: 11px; }
   .cadastro-input-wrap { padding-inline: 10px; }
   .cadastro-footer { gap: 8px; }
   .cadastro-footer-action { min-height: 52px; padding: 8px 12px; }
 }
 
 @media (prefers-reduced-transparency: reduce) {
-  .cadastro-card { background: #fff; backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .cadastro-card {
+    background: #fff;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .cadastro-input-wrap,
   .cadastro-textarea-wrap,
-  .cadastro-submit { transition: none; }
-}
-
-
-/* O formulário cresce com o conteúdo; a rolagem acontece na página, nunca dentro do cartão. */
-html:has(.cadastro-page),
-body:has(.cadastro-page),
-#app:has(.cadastro-page) {
-  height: auto;
-  min-height: 100%;
-  overflow-x: clip;
-  overflow-y: auto;
-}
-
-.cadastro-page {
-  height: auto;
-  min-height: 100vh;
-  min-height: 100dvh;
-  overflow-y: visible;
-}
-
-.cadastro-card {
-  max-height: none;
-  overflow: visible;
-}
-
-@media (max-width: 700px) {
-  .cadastro-page {
-    min-height: 100vh;
-    min-height: 100dvh;
-    padding-bottom: max(18px, env(safe-area-inset-bottom));
+  .cadastro-submit,
+  .cadastro-footer-action {
+    transition: none;
   }
 }
