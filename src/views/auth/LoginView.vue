@@ -132,6 +132,12 @@ async function entrar() {
         </label>
 
         <div class="login-form-tools">
+          <div class="login-register-inline-group">
+            <span>Não tem cadastro?</span>
+            <RouterLink to="/produtor/cadastro" class="login-register-inline-link">
+              Cadastre-se
+            </RouterLink>
+          </div>
           <RouterLink to="/produtor/recuperar-senha" class="login-forgot-link">
             Esqueci minha senha?
           </RouterLink>
@@ -148,6 +154,7 @@ async function entrar() {
           <span>{{ carregando ? 'Verificando acesso...' : 'Entrar' }}</span>
         </button>
       </form>
+
 
       <div class="login-tagline" aria-label="Descubra, Participe, Conecte-se">
         <span class="login-tagline-line" aria-hidden="true"></span>
