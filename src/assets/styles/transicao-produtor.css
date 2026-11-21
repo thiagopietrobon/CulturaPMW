@@ -1,0 +1,193 @@
+/* CulturaPMW — transição animada exclusiva para
+   PainelProdutorView e AguardandoAprovacaoView.
+*/
+
+.app-route-layer {
+  position: relative;
+}
+
+/* =========================================================
+   1. OVERLAY DE CARREGAMENTO ("Carregando área de produtores...")
+   ========================================================= */
+.produtor-loader-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background:
+    radial-gradient(circle at 50% 35%, rgb(255 255 255 / 92%), rgb(220 238 255 / 90%));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.produtor-loader-box {
+  display: flex;
+  width: min(100%, 340px);
+  flex-direction: column;
+  align-items: center;
+  padding: 26px 28px 24px;
+  border: 1px solid rgb(255 255 255 / 95%);
+  border-radius: 24px;
+  background: rgb(255 255 255 / 96%);
+  box-shadow:
+    0 20px 50px rgb(8 46 99 / 18%),
+    0 4px 14px rgb(8 66 140 / 8%);
+  text-align: center;
+}
+
+.produtor-loader-logo {
+  display: block;
+  width: auto;
+  height: 48px;
+  object-fit: contain;
+}
+
+/* Barras de pulso cultural / palco */
+.produtor-loader-bars {
+  display: flex;
+  height: 28px;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 18px;
+}
+
+.produtor-loader-bars span {
+  width: 6px;
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #117cd9 0%, #08428c 100%);
+  animation: produtorEqualizer 1s ease-in-out infinite alternate;
+}
+
+.produtor-loader-bars span:nth-child(1) { animation-delay: 0s; }
+.produtor-loader-bars span:nth-child(2) { animation-delay: 0.14s; }
+.produtor-loader-bars span:nth-child(3) { animation-delay: 0.28s; }
+.produtor-loader-bars span:nth-child(4) { animation-delay: 0.42s; }
+
+@keyframes produtorEqualizer {
+  0% {
+    height: 9px;
+    opacity: 0.45;
+  }
+  100% {
+    height: 26px;
+    opacity: 1;
+  }
+}
+
+.produtor-loader-title {
+  margin: 14px 0 0;
+  color: #08428c;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.produtor-loader-subtitle {
+  margin-top: 3px;
+  color: #6f83a2;
+  font-size: 13px;
+  font-weight: 550;
+}
+
+/* Barra de progresso deslizante */
+.produtor-loader-track {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  height: 5px;
+  margin-top: 16px;
+  border-radius: 999px;
+  background: #e4eefb;
+}
+
+.produtor-loader-bar {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 45%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #117cd9 0%, #1154d9 60%, #08428c 100%);
+  animation: produtorProgressSweep 0.75s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes produtorProgressSweep {
+  0% {
+    transform: translateX(-110%);
+  }
+  100% {
+    transform: translateX(240%);
+  }
+}
+
+/* Entrada e saída do overlay */
+.produtor-curtain-enter-active {
+  transition: opacity 0.18s ease-out;
+}
+
+.produtor-curtain-leave-active {
+  transition:
+    opacity 0.34s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+.produtor-curtain-enter-from {
+  opacity: 0;
+}
+
+.produtor-curtain-leave-to {
+  opacity: 0;
+  transform: scale(1.02);
+}
+
+/* =========================================================
+   2. ENTRADA DA TELA POR BAIXO DO OVERLAY
+   ========================================================= */
+.produtor-enter-enter-active {
+  transition:
+    opacity 0.42s cubic-bezier(0.22, 1, 0.36, 1) 0.12s,
+    transform 0.46s cubic-bezier(0.22, 1, 0.36, 1) 0.12s;
+}
+
+.produtor-enter-leave-active {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.produtor-enter-enter-from {
+  opacity: 0;
+  transform: translateY(12px) scale(0.99);
+}
+
+.produtor-enter-leave-to {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .produtor-loader-bars span,
+  .produtor-loader-bar {
+    animation: none;
+  }
+
+  .produtor-loader-bar {
+    width: 100%;
+  }
+
+  .produtor-curtain-enter-active,
+  .produtor-curtain-leave-active,
+  .produtor-enter-enter-active,
+  .produtor-enter-leave-active {
+    transition: none;
+  }
+
+  .produtor-enter-enter-from {
+    opacity: 1;
+    transform: none;
+  }
+}

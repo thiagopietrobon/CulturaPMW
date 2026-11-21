@@ -104,6 +104,11 @@ const router = createRouter({
     },
 
     {
+      path: '/produtor',
+      redirect: { name: 'produtor-painel' }
+    },
+
+    {
       path: '/produtor/painel',
       name: 'produtor-painel',
       component: PainelProdutorView,
