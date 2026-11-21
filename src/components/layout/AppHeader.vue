@@ -5,13 +5,14 @@ import { authService } from '../../services/AuthService'
 import { useAuth } from '../../composables/useAuth'
 
 const router = useRouter()
-const { perfil, autenticado, carregando } = useAuth()
+const { perfil, administrador, autenticado, carregando } = useAuth()
 const rotaAreaProdutor = computed(() => {
   if (perfil.value?.status === 'REPROVADO') return '/produtor/reprovado'
   if (perfil.value?.status === 'SUSPENSO') return '/produtor/suspenso'
   if (perfil.value?.status === 'AGUARDANDO_APROVACAO') return '/produtor/aguardando-aprovacao'
   return '/produtor/painel'
 })
+const rotaMinhaArea = computed(() => administrador.value ? '/admin' : rotaAreaProdutor.value)
 
 async function sair() {
   try {
@@ -39,14 +40,14 @@ async function sair() {
       </nav>
 
       <div class="header-account">
-        <template v-if="autenticado && perfil">
-          <RouterLink :to="rotaAreaProdutor" class="header-button">
+        <template v-if="autenticado && (perfil || administrador)">
+          <RouterLink :to="rotaMinhaArea" class="header-button">
             Minha área
           </RouterLink>
           <button class="header-account-link" type="button" @click="sair">Sair</button>
         </template>
         <template v-else-if="!carregando">
-          <RouterLink to="/produtor/login" class="header-account-link">Entrar</RouterLink>
+          <RouterLink to="/login" class="header-account-link">Entrar</RouterLink>
           <RouterLink to="/produtor/cadastro" class="header-button">Sou produtor</RouterLink>
         </template>
       </div>

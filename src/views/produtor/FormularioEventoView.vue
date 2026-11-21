@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import LocalizacaoEventoForm from '../../components/formularios/LocalizacaoEventoForm.vue'
 import { authService, type PerfilProdutorAutenticado } from '../../services/AuthService'
@@ -13,7 +13,20 @@ import {
   type DadosSalvarEventoProdutor
 } from '../../services/EventoService'
 import type { TipoLink } from '../../models/LinkExterno'
+import logoCulturaPMW from '../../assets/sgv/culturapmw-logo.png'
 import '../../assets/styles/produtor.css'
+import '../../assets/styles/produtor-evento-form.css'
+
+type Campo =
+  | 'titulo'
+  | 'descricao'
+  | 'categoria_id'
+  | 'data_inicio'
+  | 'data_fim'
+  | 'valor_ingresso'
+  | 'imagem'
+  | 'localizacao'
+  | 'links'
 
 interface LinkFormulario {
   tipo: TipoLink
@@ -27,13 +40,15 @@ interface FormularioLocalizacaoRef {
 
 const route = useRoute()
 const router = useRouter()
-const eventoId = computed(() => typeof route.params.id === 'string' ? route.params.id : null)
+const eventoId = computed(() => (typeof route.params.id === 'string' ? route.params.id : null))
 const editando = computed(() => Boolean(eventoId.value))
 const localizacaoForm = ref<FormularioLocalizacaoRef | null>(null)
 const categorias = ref<Categoria[]>([])
 const carregando = ref(true)
 const salvando = ref(false)
+const enviado = ref(false)
 const erro = ref('')
+const erroImagem = ref('')
 const arquivoImagem = ref<File | null>(null)
 const inputImagem = ref<HTMLInputElement | null>(null)
 const previaImagem = ref('')
@@ -53,6 +68,32 @@ const formulario = reactive({
   localizacao: criarLocalizacaoVazia(),
   links: [] as LinkFormulario[]
 })
+
+const tocados = reactive<Record<Campo, boolean>>({
+  titulo: false,
+  descricao: false,
+  categoria_id: false,
+  data_inicio: false,
+  data_fim: false,
+  valor_ingresso: false,
+  imagem: false,
+  localizacao: false,
+  links: false
+})
+
+const tocadosLinks = ref<boolean[]>([])
+
+const nomesCampos: Record<Campo, string> = {
+  titulo: 'Título do evento',
+  descricao: 'Descrição',
+  categoria_id: 'Categoria',
+  data_inicio: 'Data e horário de início',
+  data_fim: 'Data e horário de término',
+  valor_ingresso: 'Valor do ingresso',
+  imagem: 'Imagem do evento',
+  localizacao: 'Localização',
+  links: 'Links externos'
+}
 
 const tiposLink: Array<{ valor: TipoLink; rotulo: string }> = [
   { valor: 'INGRESSO', rotulo: 'Ingressos' },
@@ -75,6 +116,145 @@ function validarUrl(url: string): boolean {
   }
 }
 
+const errosLinks = computed<Record<number, string>>(() => {
+  const mapa: Record<number, string> = {}
+  formulario.links.forEach((link, indice) => {
+    const url = link.url.trim()
+    if (url && !validarUrl(url)) {
+      mapa[indice] = 'Informe uma URL válida iniciada por http:// ou https://.'
+    }
+  })
+  return mapa
+})
+
+const erros = computed<Partial<Record<Campo, string>>>(() => {
+  const resultado: Partial<Record<Campo, string>> = {}
+  const tituloLimpo = formulario.titulo.trim()
+  const descricaoLimpa = formulario.descricao.trim()
+
+  if (!tituloLimpo) {
+    resultado.titulo = 'Informe o título do evento.'
+  } else if (tituloLimpo.length < 3) {
+    resultado.titulo = 'Informe pelo menos 3 caracteres para o título.'
+  }
+
+  if (!descricaoLimpa) {
+    resultado.descricao = 'Informe a descrição do evento.'
+  } else if (descricaoLimpa.length < 10) {
+    resultado.descricao = 'Informe pelo menos 10 caracteres na descrição.'
+  }
+
+  if (!formulario.categoria_id) {
+    resultado.categoria_id = 'Selecione uma categoria para o evento.'
+  }
+
+  if (!formulario.data_inicio) {
+    resultado.data_inicio = 'Informe a data e o horário de início.'
+  }
+
+  if (!formulario.data_fim) {
+    resultado.data_fim = 'Informe a data e o horário de término.'
+  } else if (
+    formulario.data_inicio &&
+    new Date(formulario.data_fim) <= new Date(formulario.data_inicio)
+  ) {
+    resultado.data_fim = 'A data e o horário de término devem ser posteriores ao início.'
+  }
+
+  if (!formulario.gratuito) {
+    const valor = Number(formulario.valor_ingresso)
+    if (!Number.isFinite(valor) || valor <= 0) {
+      resultado.valor_ingresso = 'Informe um valor de ingresso maior que zero.'
+    }
+  }
+
+  if (erroImagem.value) {
+    resultado.imagem = erroImagem.value
+  }
+
+  void formulario.localizacao.cep
+  void formulario.localizacao.logradouro
+  void formulario.localizacao.numero
+  void formulario.localizacao.complemento
+  void formulario.localizacao.bairro
+  void formulario.localizacao.cidade
+  void formulario.localizacao.uf
+  void formulario.localizacao.regiao_id
+
+  const erroLocalizacao = localizacaoForm.value?.validar()
+  if (erroLocalizacao) {
+    resultado.localizacao = erroLocalizacao
+  }
+
+  const indicesInvalidos = Object.keys(errosLinks.value)
+  if (indicesInvalidos.length > 0) {
+    resultado.links =
+      indicesInvalidos.length === 1
+        ? 'Confira o link externo informado (use http:// ou https://).'
+        : `Confira os ${indicesInvalidos.length} links externos inválidos (use http:// ou https://).`
+  }
+
+  return resultado
+})
+
+const listaErros = computed(() =>
+  (Object.keys(nomesCampos) as Campo[])
+    .filter((campo) => Boolean(erros.value[campo]))
+    .map((campo) => ({
+      campo,
+      nome: nomesCampos[campo],
+      mensagem: erros.value[campo] as string
+    }))
+)
+
+function erroDo(campo: Campo): string {
+  return enviado.value || tocados[campo] ? (erros.value[campo] ?? '') : ''
+}
+
+function erroDoLink(indice: number): string {
+  return enviado.value || tocadosLinks.value[indice] ? (errosLinks.value[indice] ?? '') : ''
+}
+
+function marcarTocado(campo: Campo): void {
+  tocados[campo] = true
+}
+
+function marcarLinkTocado(indice: number): void {
+  tocadosLinks.value[indice] = true
+  tocados.links = true
+}
+
+function normalizarTitulo(): void {
+  formulario.titulo = formulario.titulo.trim().replace(/\s+/g, ' ')
+}
+
+function aoAlterarGratuito(): void {
+  if (formulario.gratuito) {
+    tocados.valor_ingresso = false
+  }
+}
+
+function focarCampo(campo: Campo): void {
+  if (campo === 'localizacao') {
+    const container = document.getElementById('evento-localizacao')
+    const alvo = container?.querySelector<HTMLElement>(
+      '[aria-invalid="true"], input:not([disabled]), select:not([disabled])'
+    )
+    alvo?.focus()
+    return
+  }
+
+  if (campo === 'links') {
+    const primeiroIndice = Object.keys(errosLinks.value)[0]
+    if (primeiroIndice !== undefined) {
+      document.getElementById(`evento-link-url-${primeiroIndice}`)?.focus()
+    }
+    return
+  }
+
+  document.getElementById(`evento-${campo}`)?.focus()
+}
+
 function limparPreviaTemporaria() {
   if (urlTemporaria) URL.revokeObjectURL(urlTemporaria)
   urlTemporaria = null
@@ -84,15 +264,17 @@ function selecionarImagem(event: Event) {
   const input = event.target as HTMLInputElement
   const arquivo = input.files?.[0] ?? null
   erro.value = ''
+  erroImagem.value = ''
+  tocados.imagem = true
   if (!arquivo) return
 
   if (!['image/jpeg', 'image/png', 'image/webp'].includes(arquivo.type)) {
-    erro.value = 'Selecione uma imagem JPG, PNG ou WebP.'
+    erroImagem.value = 'Selecione uma imagem JPG, PNG ou WebP.'
     input.value = ''
     return
   }
   if (arquivo.size > 5 * 1024 * 1024) {
-    erro.value = 'A imagem deve possuir no máximo 5 MB.'
+    erroImagem.value = 'A imagem deve possuir no máximo 5 MB.'
     input.value = ''
     return
   }
@@ -106,6 +288,7 @@ function selecionarImagem(event: Event) {
 
 function removerImagem() {
   limparPreviaTemporaria()
+  erroImagem.value = ''
   arquivoImagem.value = null
   previaImagem.value = ''
   removerImagemAtual.value = true
@@ -114,10 +297,12 @@ function removerImagem() {
 
 function adicionarLink() {
   formulario.links.push({ tipo: 'OUTRO', url: '' })
+  tocadosLinks.value.push(false)
 }
 
 function removerLink(indice: number) {
   formulario.links.splice(indice, 1)
+  tocadosLinks.value.splice(indice, 1)
 }
 
 async function carregarFormulario() {
@@ -158,6 +343,7 @@ async function carregarFormulario() {
         regiao_id: evento.localizacao?.regiao_id ?? null
       }
       formulario.links = evento.links.map((link) => ({ tipo: link.tipo, url: link.url }))
+      tocadosLinks.value = formulario.links.map(() => false)
     }
   } catch (errorCarregamento) {
     console.error('[CulturaPMW] Falha ao carregar formulário do evento:', errorCarregamento)
@@ -169,6 +355,18 @@ async function carregarFormulario() {
 
 async function salvar() {
   erro.value = ''
+  enviado.value = true
+  ;(Object.keys(tocados) as Campo[]).forEach((campo) => {
+    tocados[campo] = true
+  })
+  tocadosLinks.value = formulario.links.map(() => true)
+
+  if (listaErros.value.length > 0) {
+    await nextTick()
+    focarCampo(listaErros.value[0].campo)
+    return
+  }
+
   let produtor: PerfilProdutorAutenticado | null
   try {
     produtor = await authService.produtorAtual()
@@ -182,41 +380,7 @@ async function salvar() {
     return
   }
 
-  if (!formulario.titulo.trim()) {
-    erro.value = 'Informe o título do evento.'
-    return
-  }
-  if (!formulario.descricao.trim()) {
-    erro.value = 'Informe a descrição do evento.'
-    return
-  }
-  if (!formulario.categoria_id) {
-    erro.value = 'Selecione uma categoria para o evento.'
-    return
-  }
-  if (!formulario.data_inicio || !formulario.data_fim) {
-    erro.value = 'Informe a data e o horário de início e término.'
-    return
-  }
-  if (new Date(formulario.data_fim) <= new Date(formulario.data_inicio)) {
-    erro.value = 'A data e o horário de término devem ser posteriores ao início.'
-    return
-  }
-  if (!formulario.gratuito && (!Number.isFinite(Number(formulario.valor_ingresso)) || Number(formulario.valor_ingresso) <= 0)) {
-    erro.value = 'Informe um valor de ingresso maior que zero ou marque o evento como gratuito.'
-    return
-  }
-
-  const erroLocalizacao = localizacaoForm.value?.validar()
-  if (erroLocalizacao) {
-    erro.value = erroLocalizacao
-    return
-  }
   const linksPreenchidos = formulario.links.filter((link) => link.url.trim())
-  if (linksPreenchidos.some((link) => !validarUrl(link.url.trim()))) {
-    erro.value = 'Os links externos devem utilizar endereços iniciados por http:// ou https://.'
-    return
-  }
 
   salvando.value = true
   let novaImagemEnviada: string | null = null
@@ -228,7 +392,7 @@ async function salvar() {
     }
 
     const dados: DadosSalvarEventoProdutor = {
-      titulo: formulario.titulo.trim(),
+      titulo: formulario.titulo.trim().replace(/\s+/g, ' '),
       descricao: formulario.descricao.trim(),
       imagem_url: imagemUrl,
       categoria_id: formulario.categoria_id,
@@ -250,7 +414,10 @@ async function salvar() {
       }
     }
 
-    await router.push({ name: 'produtor-eventos', query: { salvo: '1' } })
+    await router.push({
+      name: 'produtor-eventos',
+      query: { salvo: editando.value ? 'editado' : 'criado' }
+    })
   } catch (errorSalvar) {
     console.error('[CulturaPMW] Falha ao salvar evento:', errorSalvar)
     if (novaImagemEnviada) {
@@ -260,9 +427,10 @@ async function salvar() {
         console.warn('[CulturaPMW] Não foi possível limpar a imagem enviada após a falha:', erroLimpeza)
       }
     }
-    erro.value = errorSalvar instanceof Error
-      ? errorSalvar.message
-      : 'Não foi possível salvar o evento. Seus dados continuam preenchidos; tente novamente.'
+    erro.value =
+      errorSalvar instanceof Error
+        ? errorSalvar.message
+        : 'Não foi possível salvar o evento. Seus dados continuam preenchidos; tente novamente.'
   } finally {
     salvando.value = false
   }
@@ -273,124 +441,402 @@ onBeforeUnmount(limparPreviaTemporaria)
 </script>
 
 <template>
-  <main class="produtor-area-page">
-    <header class="produtor-area-heading">
-      <div>
-        <p class="produtor-eyebrow">ÁREA DO PRODUTOR / EVENTOS</p>
-        <h1>{{ editando ? 'Editar evento' : 'Publicar evento' }}</h1>
-        <p>Preencha as informações da atração para disponibilizá-la na agenda do CulturaPMW.</p>
-      </div>
-      <RouterLink to="/produtor/eventos" class="produtor-button produtor-button-secondary">← Meus eventos</RouterLink>
-    </header>
+  <main class="produtor-area-page evento-form-page">
+    <div class="evento-form-shell">
+      <nav class="evento-form-topbar" aria-label="Navegação do formulário">
+        <RouterLink to="/produtor" class="evento-form-brand" aria-label="Voltar ao painel do produtor">
+          <img :src="logoCulturaPMW" alt="CulturaPMW — Eventos que conectam Palmas" />
+        </RouterLink>
 
-    <div v-if="carregando" class="produtor-data-card">Carregando formulário...</div>
-    <div v-else-if="erro && editando && !formulario.titulo" class="produtor-alert produtor-alert-error" role="alert">{{ erro }}</div>
+        <RouterLink to="/produtor/eventos" class="evento-btn-secondary">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M19 12H5M11 6l-6 6 6 6" />
+          </svg>
+          <span>Voltar para Meus eventos</span>
+        </RouterLink>
+      </nav>
 
-    <form v-else class="produtor-data-card produtor-evento-form" @submit.prevent="salvar">
-      <div v-if="erro" class="produtor-alert produtor-alert-error" role="alert">{{ erro }}</div>
+      <section class="evento-form-card" aria-labelledby="evento-form-titulo">
+        <header class="evento-form-header">
+          <span class="evento-form-eyebrow">
+            {{ editando ? 'EDIÇÃO DE EVENTO' : 'PUBLICAÇÃO DE EVENTO' }}
+          </span>
+          <h1 id="evento-form-titulo">{{ editando ? 'Editar evento' : 'Publicar novo evento' }}</h1>
+          <p>
+            Preencha as informações da atração para disponibilizá-la na agenda cultural do CulturaPMW.
+          </p>
+        </header>
 
-      <section class="produtor-evento-secao">
-        <div class="produtor-evento-secao-titulo"><span>01</span><div><h2>Informações principais</h2><p>Apresente os detalhes que ajudam o público a conhecer seu evento.</p></div></div>
-        <div class="produtor-form-grid">
-          <label class="produtor-field produtor-field-full">Título do evento *
-            <input v-model="formulario.titulo" required maxlength="140" placeholder="Ex.: Festival de Música no Parque" :disabled="salvando" />
-          </label>
-          <label class="produtor-field produtor-field-full">Descrição *
-            <textarea v-model="formulario.descricao" required maxlength="5000" rows="5" placeholder="Conte ao público sobre a programação, atrações e outras informações importantes..." :disabled="salvando" />
-          </label>
-          <label class="produtor-field produtor-field-full">Categoria *
-            <select v-model.number="formulario.categoria_id" required :disabled="salvando || categorias.length === 0">
-              <option :value="0" disabled>Selecione uma categoria</option>
-              <option v-for="categoria in categorias" :key="categoria.id" :value="categoria.id">{{ categoria.nome }}</option>
-            </select>
-            <small v-if="categorias.length === 0">Nenhuma categoria está disponível. Solicite à administração o cadastro de uma categoria.</small>
-          </label>
+        <div class="evento-form-divider" aria-hidden="true"></div>
+
+        <div v-if="carregando" class="evento-form-loading" role="status">
+          Carregando informações do formulário...
         </div>
-      </section>
 
-      <section class="produtor-evento-secao">
-        <div class="produtor-evento-secao-titulo"><span>02</span><div><h2>Data, horário e entrada</h2><p>Informe quando o evento começa e termina.</p></div></div>
-        <div class="produtor-form-grid">
-          <label class="produtor-field">Início *<input v-model="formulario.data_inicio" type="datetime-local" required :disabled="salvando" /></label>
-          <label class="produtor-field">Término *<input v-model="formulario.data_fim" type="datetime-local" required :disabled="salvando" /></label>
-          <div class="produtor-field produtor-field-full">
-            <span>Entrada *</span>
-            <label class="produtor-checkbox-field"><input v-model="formulario.gratuito" type="checkbox" :disabled="salvando" /> Este evento é gratuito</label>
+        <div
+          v-else-if="erro && editando && !formulario.titulo"
+          class="evento-server-error"
+          role="alert"
+        >
+          {{ erro }}
+        </div>
+
+        <form v-else class="evento-form" novalidate @submit.prevent="salvar">
+          <div
+            v-if="enviado && listaErros.length"
+            class="evento-error-summary"
+            role="alert"
+            aria-live="assertive"
+          >
+            <strong>
+              Encontramos {{ listaErros.length }}
+              {{ listaErros.length === 1 ? 'campo que precisa' : 'campos que precisam' }} de atenção:
+            </strong>
+            <ul>
+              <li v-for="item in listaErros" :key="item.campo">
+                <button type="button" @click="focarCampo(item.campo)">
+                  {{ item.nome }}: {{ item.mensagem }}
+                </button>
+              </li>
+            </ul>
           </div>
-          <label v-if="!formulario.gratuito" class="produtor-field">Valor do ingresso (R$) *
-            <input v-model.number="formulario.valor_ingresso" type="number" min="0.01" step="0.01" required placeholder="0,00" :disabled="salvando" />
-          </label>
-        </div>
-      </section>
 
-      <section class="produtor-evento-secao">
-        <div class="produtor-evento-secao-titulo"><span>03</span><div><h2>Imagem do evento</h2><p>Adicione uma imagem para destacar sua publicação. JPG, PNG ou WebP, até 5 MB.</p></div></div>
-        <div class="produtor-imagem-upload">
-          <img v-if="previaImagem" :src="previaImagem" :alt="`Prévia de ${formulario.titulo || 'imagem do evento'}`" />
-          <div v-else class="produtor-imagem-placeholder">Prévia da imagem</div>
-          <div class="produtor-imagem-controles">
-            <label class="produtor-button produtor-button-secondary produtor-upload-label">
-              Escolher imagem
-              <input ref="inputImagem" type="file" accept="image/jpeg,image/png,image/webp" :disabled="salvando" @change="selecionarImagem" />
-            </label>
-            <button v-if="previaImagem" type="button" class="produtor-button produtor-button-danger" :disabled="salvando" @click="removerImagem">Remover imagem</button>
-            <small>A imagem é pública e será armazenada no Supabase Storage.</small>
-          </div>
-        </div>
-      </section>
+          <div v-if="erro" class="evento-server-error" role="alert">{{ erro }}</div>
 
-      <section class="produtor-evento-secao">
-        <div class="produtor-evento-secao-titulo"><span>04</span><div><h2>Localização</h2><p>O evento deve acontecer em Palmas-TO. A consulta por CEP é opcional.</p></div></div>
-        <LocalizacaoEventoForm ref="localizacaoForm" v-model="formulario.localizacao" :disabled="salvando" />
-      </section>
+          <section class="evento-secao">
+            <div class="evento-secao-titulo">
+              <span>01</span>
+              <div>
+                <h2>Informações principais</h2>
+                <p>Apresente os detalhes que ajudam o público a conhecer seu evento.</p>
+              </div>
+            </div>
 
-      <section class="produtor-evento-secao">
-        <div class="produtor-evento-secao-titulo"><span>05</span><div><h2>Links externos</h2><p>Adicione links de ingressos, divulgação, contato ou outras informações.</p></div></div>
-        <div v-if="formulario.links.length === 0" class="produtor-links-vazio">Nenhum link externo adicionado.</div>
-        <div v-for="(link, indice) in formulario.links" :key="indice" class="produtor-link-linha">
-          <label class="produtor-field">Tipo
-            <select v-model="link.tipo" :disabled="salvando">
-              <option v-for="tipo in tiposLink" :key="tipo.valor" :value="tipo.valor">{{ tipo.rotulo }}</option>
-            </select>
-          </label>
-          <label class="produtor-field">URL
-            <input v-model="link.url" type="url" maxlength="2048" placeholder="https://..." :disabled="salvando" />
-          </label>
-          <button type="button" class="produtor-button produtor-button-danger produtor-remover-link" :disabled="salvando" @click="removerLink(indice)">Remover</button>
-        </div>
-        <button type="button" class="produtor-button produtor-button-secondary" :disabled="salvando || formulario.links.length >= 10" @click="adicionarLink">+ Adicionar link</button>
-      </section>
+            <div class="evento-form-grid">
+              <label class="evento-field evento-field-full" :class="{ 'is-invalid': erroDo('titulo') }">
+                <span class="evento-field-header">
+                  <span>Título do evento <b>*</b></span>
+                  <small class="evento-character-count" aria-live="polite">
+                    {{ formulario.titulo.length }}/140
+                  </small>
+                </span>
+                <input
+                  id="evento-titulo"
+                  v-model="formulario.titulo"
+                  required
+                  maxlength="140"
+                  placeholder="Ex.: Festival de Música no Parque"
+                  :disabled="salvando"
+                  :aria-invalid="Boolean(erroDo('titulo'))"
+                  :aria-describedby="erroDo('titulo') ? 'erro-titulo' : undefined"
+                  @blur="normalizarTitulo(); marcarTocado('titulo')"
+                />
+                <small v-if="erroDo('titulo')" id="erro-titulo" class="evento-field-error">
+                  {{ erroDo('titulo') }}
+                </small>
+              </label>
 
-      <div class="produtor-form-actions produtor-evento-form-actions">
-        <button type="submit" class="produtor-button produtor-button-primary" :disabled="salvando || categorias.length === 0">
-          {{ salvando ? 'Salvando...' : editando ? 'Salvar alterações' : 'Publicar evento' }}
-        </button>
-        <RouterLink to="/produtor/eventos" class="produtor-button produtor-button-secondary">Cancelar</RouterLink>
-      </div>
-    </form>
+              <label class="evento-field evento-field-full" :class="{ 'is-invalid': erroDo('descricao') }">
+                <span class="evento-field-header">
+                  <span>Descrição <b>*</b></span>
+                  <small class="evento-character-count" aria-live="polite">
+                    {{ formulario.descricao.length }}/5000 caracteres
+                  </small>
+                </span>
+                <textarea
+                  id="evento-descricao"
+                  v-model="formulario.descricao"
+                  required
+                  maxlength="5000"
+                  rows="5"
+                  placeholder="Conte ao público sobre a programação, atrações e outras informações importantes..."
+                  :disabled="salvando"
+                  :aria-invalid="Boolean(erroDo('descricao'))"
+                  :aria-describedby="erroDo('descricao') ? 'erro-descricao' : undefined"
+                  @blur="marcarTocado('descricao')"
+                />
+                <small v-if="erroDo('descricao')" id="erro-descricao" class="evento-field-error">
+                  {{ erroDo('descricao') }}
+                </small>
+              </label>
+
+              <label class="evento-field evento-field-full" :class="{ 'is-invalid': erroDo('categoria_id') }">
+                <span>Categoria <b>*</b></span>
+                <select
+                  id="evento-categoria_id"
+                  v-model.number="formulario.categoria_id"
+                  required
+                  :disabled="salvando || categorias.length === 0"
+                  :aria-invalid="Boolean(erroDo('categoria_id'))"
+                  :aria-describedby="erroDo('categoria_id') ? 'erro-categoria' : undefined"
+                  @change="marcarTocado('categoria_id')"
+                  @blur="marcarTocado('categoria_id')"
+                >
+                  <option :value="0" disabled>Selecione uma categoria</option>
+                  <option v-for="categoria in categorias" :key="categoria.id" :value="categoria.id">
+                    {{ categoria.nome }}
+                  </option>
+                </select>
+                <small v-if="erroDo('categoria_id')" id="erro-categoria" class="evento-field-error">
+                  {{ erroDo('categoria_id') }}
+                </small>
+                <small v-else-if="categorias.length === 0" class="evento-field-hint">
+                  Nenhuma categoria está disponível. Solicite à administração o cadastro de uma categoria.
+                </small>
+              </label>
+            </div>
+          </section>
+
+          <section class="evento-secao">
+            <div class="evento-secao-titulo">
+              <span>02</span>
+              <div>
+                <h2>Data, horário e entrada</h2>
+                <p>Informe quando o evento começa e termina e como será o acesso.</p>
+              </div>
+            </div>
+
+            <div class="evento-form-grid">
+              <label class="evento-field" :class="{ 'is-invalid': erroDo('data_inicio') }">
+                <span>Início <b>*</b></span>
+                <input
+                  id="evento-data_inicio"
+                  v-model="formulario.data_inicio"
+                  type="datetime-local"
+                  required
+                  :disabled="salvando"
+                  :aria-invalid="Boolean(erroDo('data_inicio'))"
+                  :aria-describedby="erroDo('data_inicio') ? 'erro-data-inicio' : undefined"
+                  @blur="marcarTocado('data_inicio')"
+                />
+                <small v-if="erroDo('data_inicio')" id="erro-data-inicio" class="evento-field-error">
+                  {{ erroDo('data_inicio') }}
+                </small>
+              </label>
+
+              <label class="evento-field" :class="{ 'is-invalid': erroDo('data_fim') }">
+                <span>Término <b>*</b></span>
+                <input
+                  id="evento-data_fim"
+                  v-model="formulario.data_fim"
+                  type="datetime-local"
+                  required
+                  :disabled="salvando"
+                  :aria-invalid="Boolean(erroDo('data_fim'))"
+                  :aria-describedby="erroDo('data_fim') ? 'erro-data-fim' : undefined"
+                  @blur="marcarTocado('data_fim')"
+                />
+                <small v-if="erroDo('data_fim')" id="erro-data-fim" class="evento-field-error">
+                  {{ erroDo('data_fim') }}
+                </small>
+              </label>
+
+              <div class="evento-field evento-field-full">
+                <span>Entrada <b>*</b></span>
+                <label class="evento-checkbox-field">
+                  <input
+                    v-model="formulario.gratuito"
+                    type="checkbox"
+                    :disabled="salvando"
+                    @change="aoAlterarGratuito"
+                  />
+                  <span>Este evento possui entrada gratuita</span>
+                </label>
+              </div>
+
+              <label
+                v-if="!formulario.gratuito"
+                class="evento-field"
+                :class="{ 'is-invalid': erroDo('valor_ingresso') }"
+              >
+                <span>Valor do ingresso (R$) <b>*</b></span>
+                <input
+                  id="evento-valor_ingresso"
+                  v-model.number="formulario.valor_ingresso"
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  required
+                  placeholder="0,00"
+                  :disabled="salvando"
+                  :aria-invalid="Boolean(erroDo('valor_ingresso'))"
+                  :aria-describedby="erroDo('valor_ingresso') ? 'erro-valor-ingresso' : undefined"
+                  @blur="marcarTocado('valor_ingresso')"
+                />
+                <small v-if="erroDo('valor_ingresso')" id="erro-valor-ingresso" class="evento-field-error">
+                  {{ erroDo('valor_ingresso') }}
+                </small>
+              </label>
+            </div>
+          </section>
+
+          <section class="evento-secao">
+            <div class="evento-secao-titulo">
+              <span>03</span>
+              <div>
+                <h2>Imagem do evento</h2>
+                <p>Adicione uma capa para destacar sua publicação. JPG, PNG ou WebP, até 5 MB.</p>
+              </div>
+            </div>
+
+            <div class="evento-imagem-upload" :class="{ 'is-invalid': erroDo('imagem') }">
+              <img
+                v-if="previaImagem"
+                :src="previaImagem"
+                :alt="`Prévia de ${formulario.titulo || 'imagem do evento'}`"
+              />
+              <div v-else class="evento-imagem-placeholder">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <rect x="3" y="5" width="18" height="14" rx="2.5" />
+                  <circle cx="8.5" cy="10" r="1.5" />
+                  <path d="m21 15-5-5L6 19" />
+                </svg>
+                <span>Prévia da capa</span>
+              </div>
+
+              <div class="evento-imagem-controles">
+                <label class="evento-btn-secondary evento-upload-label">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 16V4m-4 4 4-4 4 4M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
+                  </svg>
+                  <span>{{ previaImagem ? 'Trocar imagem' : 'Escolher imagem' }}</span>
+                  <input
+                    id="evento-imagem"
+                    ref="inputImagem"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    :disabled="salvando"
+                    @change="selecionarImagem"
+                  />
+                </label>
+
+                <button
+                  v-if="previaImagem"
+                  type="button"
+                  class="evento-btn-danger"
+                  :disabled="salvando"
+                  @click="removerImagem"
+                >
+                  Remover imagem
+                </button>
+
+                <small v-if="erroDo('imagem')" id="erro-imagem" class="evento-field-error">
+                  {{ erroDo('imagem') }}
+                </small>
+                <small v-else>Formatos aceitos: JPG, PNG ou WebP (tamanho máximo de 5 MB).</small>
+              </div>
+            </div>
+          </section>
+
+          <section id="evento-localizacao" class="evento-secao" @focusout="marcarTocado('localizacao')">
+            <div class="evento-secao-titulo">
+              <span>04</span>
+              <div>
+                <h2>Localização</h2>
+                <p>O evento deve acontecer em Palmas-TO. A consulta por CEP é opcional.</p>
+              </div>
+            </div>
+
+            <LocalizacaoEventoForm ref="localizacaoForm" v-model="formulario.localizacao" :disabled="salvando" />
+            <small v-if="erroDo('localizacao')" id="erro-localizacao" class="evento-field-error">
+              {{ erroDo('localizacao') }}
+            </small>
+          </section>
+
+          <section class="evento-secao">
+            <div class="evento-secao-titulo">
+              <span>05</span>
+              <div>
+                <h2>Links externos</h2>
+                <p>Adicione links de ingressos, divulgação, contato ou outras informações.</p>
+              </div>
+            </div>
+
+            <div v-if="formulario.links.length === 0" class="evento-links-vazio">
+              Nenhum link externo adicionado até o momento.
+            </div>
+
+            <div
+              v-for="(link, indice) in formulario.links"
+              :key="indice"
+              class="evento-link-linha"
+              :class="{ 'is-invalid': erroDoLink(indice) }"
+            >
+              <label class="evento-field">
+                <span>Tipo</span>
+                <select v-model="link.tipo" :disabled="salvando">
+                  <option v-for="tipo in tiposLink" :key="tipo.valor" :value="tipo.valor">
+                    {{ tipo.rotulo }}
+                  </option>
+                </select>
+              </label>
+
+              <label class="evento-field" :class="{ 'is-invalid': erroDoLink(indice) }">
+                <span>URL</span>
+                <input
+                  :id="`evento-link-url-${indice}`"
+                  v-model="link.url"
+                  type="url"
+                  maxlength="2048"
+                  placeholder="https://..."
+                  :disabled="salvando"
+                  :aria-invalid="Boolean(erroDoLink(indice))"
+                  :aria-describedby="erroDoLink(indice) ? `erro-link-${indice}` : undefined"
+                  @blur="marcarLinkTocado(indice)"
+                />
+                <small v-if="erroDoLink(indice)" :id="`erro-link-${indice}`" class="evento-field-error">
+                  {{ erroDoLink(indice) }}
+                </small>
+              </label>
+
+              <button
+                type="button"
+                class="evento-btn-danger evento-remover-link"
+                :disabled="salvando"
+                @click="removerLink(indice)"
+              >
+                Remover
+              </button>
+            </div>
+
+            <div>
+              <button
+                type="button"
+                class="evento-btn-secondary"
+                :disabled="salvando || formulario.links.length >= 10"
+                @click="adicionarLink"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+                <span>Adicionar link</span>
+              </button>
+            </div>
+          </section>
+
+          <footer class="evento-form-footer">
+            <p class="evento-form-note">
+              <strong>* Campos obrigatórios.</strong> Revise os dados antes de publicar na agenda.
+            </p>
+
+            <div class="evento-form-actions">
+              <RouterLink to="/produtor/eventos" class="evento-btn-secondary">
+                Cancelar
+              </RouterLink>
+              <button
+                type="submit"
+                class="evento-btn-primary"
+                :disabled="salvando || categorias.length === 0"
+              >
+                <svg v-if="!salvando" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M5 12.5 9.5 17 19 7.5" />
+                </svg>
+                <span>{{ salvando ? 'Salvando...' : editando ? 'Salvar alterações' : 'Publicar evento' }}</span>
+              </button>
+            </div>
+          </footer>
+        </form>
+      </section>
+    </div>
   </main>
 </template>
-
-<style scoped>
-.produtor-evento-form{max-width:950px;display:flex;flex-direction:column;gap:25px}
-.produtor-evento-secao{display:flex;flex-direction:column;gap:16px;padding-bottom:23px;border-bottom:1px solid #edf0f5}
-.produtor-evento-secao:last-of-type{border-bottom:0}
-.produtor-evento-secao-titulo{display:flex;align-items:flex-start;gap:12px}
-.produtor-evento-secao-titulo>span{display:grid;width:30px;height:30px;flex:none;place-items:center;border-radius:8px;background:#edf4ff;color:#1154d9;font-size:11px;font-weight:800}
-.produtor-evento-secao-titulo h2{margin:0;color:#172b49;font-size:17px}
-.produtor-evento-secao-titulo p{margin:5px 0 0;color:#68768b;font-size:11px;line-height:1.5}
-.produtor-checkbox-field{display:flex;align-items:center;gap:8px;color:#43536b;font-size:12px;font-weight:500}
-.produtor-checkbox-field input{width:16px;height:16px;accent-color:#1154d9}
-.produtor-imagem-upload{display:grid;grid-template-columns:minmax(0,260px) minmax(0,1fr);gap:16px;align-items:center}
-.produtor-imagem-upload img,.produtor-imagem-placeholder{width:100%;height:155px;border:1px solid #e1e7ef;border-radius:9px;object-fit:cover}
-.produtor-imagem-placeholder{display:grid;place-items:center;background:#f6f8fb;color:#8592a5;font-size:12px}
-.produtor-imagem-controles{display:flex;flex-wrap:wrap;align-items:center;gap:9px}
-.produtor-imagem-controles small{flex-basis:100%;color:#738096;font-size:10px}
-.produtor-upload-label{position:relative;overflow:hidden}.produtor-upload-label input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
-.produtor-links-vazio{padding:13px;border:1px dashed #dce3ed;border-radius:8px;color:#738096;font-size:11px}
-.produtor-link-linha{display:grid;grid-template-columns:220px minmax(0,1fr) auto;gap:10px;align-items:end;padding:13px;border:1px solid #e6ebf2;border-radius:9px}
-.produtor-remover-link{min-height:40px}
-.produtor-evento-form-actions{padding-top:3px}
-.produtor-evento-form-actions .produtor-button-primary{min-width:190px}
-@media(max-width:680px){.produtor-imagem-upload{grid-template-columns:1fr}.produtor-imagem-upload img,.produtor-imagem-placeholder{max-width:100%;height:190px}.produtor-link-linha{grid-template-columns:1fr}.produtor-remover-link{justify-self:start}.produtor-evento-form-actions .produtor-button{width:100%}}
-</style>

@@ -1,6 +1,6 @@
 # Configuração da área administrativa
 
-A área administrativa do CulturaPMW fica disponível em `/admin/login` e usa a autenticação do Supabase. O painel só aceita contas cujo campo `profiles.role` seja `admin`.
+A autenticação do CulturaPMW é feita pela tela única `/login`, usando o Supabase Auth. Depois do login, contas cujo campo `profiles.role` seja `admin` são direcionadas ao painel administrativo. As rotas administrativas continuam protegidas pela validação do perfil e pelas políticas RLS.
 
 ## 1. Configurar as variáveis locais
 
@@ -64,7 +64,7 @@ npm install
 npm run dev
 ```
 
-Acesse `/admin/login` e entre com o e-mail e a senha da conta administradora.
+Acesse `/login` e entre com o e-mail e a senha da conta administradora. O sistema identificará `profiles.role = admin` e abrirá o painel administrativo.
 
 ## Funcionalidades incluídas
 

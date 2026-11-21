@@ -13,7 +13,7 @@ async function sair() {
   saindo.value = true
   try {
     await authService.sair()
-    await router.replace({ name: 'produtor-login' })
+      await router.replace({ name: 'login' })
   } finally {
     saindo.value = false
   }

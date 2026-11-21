@@ -1,168 +1,388 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
-import { RouterLink } from 'vue-router'
-import { useRoute } from 'vue-router'
-import { authService } from '../../services/AuthService'
+import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 import {
   eventoService,
   type EventoGerenciadoProdutor
 } from '../../services/EventoService'
-import '../../assets/styles/produtor.css'
+import { useProdutorEventos } from '../../composables/useProdutorEventos'
+import ProdutorLayout from '../../components/produtor/ProdutorLayout.vue'
+import '../../assets/styles/produtor-eventos.css'
 
 const route = useRoute()
-const eventos = ref<EventoGerenciadoProdutor[]>([])
-const carregando = ref(true)
-const erro = ref('')
+const router = useRouter()
+const {
+  eventos,
+  carregando,
+  erro,
+  resumo,
+  obterProdutorId,
+  carregarEventos,
+  formatarData,
+  formatarLocalizacao,
+  situacaoTexto,
+  situacaoClasse
+} = useProdutorEventos()
+
 const sucesso = ref('')
-const excluindoId = ref<string | null>(null)
+const chaveSucesso = ref(0)
+const eventoParaExcluir = ref<EventoGerenciadoProdutor | null>(null)
+const excluindo = ref(false)
+const erroExclusao = ref('')
+const botaoCancelarModal = ref<HTMLButtonElement | null>(null)
+let timerSucesso: ReturnType<typeof setTimeout> | null = null
 
-const resumo = computed(() => ({
-  total: eventos.value.length,
-  ativos: eventos.value.filter((evento) => evento.situacao === 'ATIVO' && new Date(evento.data_fim) > new Date()).length,
-  concluidos: eventos.value.filter((evento) => evento.situacao === 'CONCLUIDO' || new Date(evento.data_fim) <= new Date()).length
-}))
-
-function formatarData(valor: string): string {
-  return new Intl.DateTimeFormat('pt-BR', {
-    dateStyle: 'short',
-    timeStyle: 'short'
-  }).format(new Date(valor))
-}
-
-function situacaoTexto(evento: EventoGerenciadoProdutor): string {
-  if (evento.situacao === 'OCULTO') return 'Oculto pela administração'
-  if (evento.situacao === 'CONCLUIDO' || new Date(evento.data_fim) <= new Date()) return 'Concluído'
-  return 'Publicado'
-}
-
-function situacaoClasse(evento: EventoGerenciadoProdutor): string {
-  if (evento.situacao === 'OCULTO') return 'produtor-evento-status-oculto'
-  if (evento.situacao === 'CONCLUIDO' || new Date(evento.data_fim) <= new Date()) return 'produtor-evento-status-concluido'
-  return 'produtor-evento-status-ativo'
-}
-
-async function carregarEventos() {
-  carregando.value = true
-  erro.value = ''
-  try {
-    const produtor = await authService.produtorAtual()
-    if (!produtor) throw new Error('Sua sessão de produtor não está disponível. Entre novamente.')
-    eventos.value = await eventoService.listarMeusEventos(produtor.id)
-  } catch (error) {
-    console.error('[CulturaPMW] Falha ao carregar eventos do produtor:', error)
-    erro.value = 'Não foi possível carregar seus eventos. Tente novamente.'
-  } finally {
-    carregando.value = false
+function limparTimerSucesso() {
+  if (timerSucesso) {
+    clearTimeout(timerSucesso)
+    timerSucesso = null
   }
 }
 
-async function excluirEvento(evento: EventoGerenciadoProdutor) {
-  const confirmar = window.confirm(`Deseja realmente excluir o evento "${evento.titulo}"? Essa ação não pode ser desfeita.`)
-  if (!confirmar) return
+function mostrarSucesso(mensagem: string) {
+  limparTimerSucesso()
+  chaveSucesso.value += 1
+  sucesso.value = mensagem
+  timerSucesso = setTimeout(() => {
+    sucesso.value = ''
+    timerSucesso = null
+  }, 5000)
+}
 
-  excluindoId.value = evento.id
-  erro.value = ''
+function fecharSucesso() {
+  limparTimerSucesso()
   sucesso.value = ''
+}
+
+async function abrirConfirmacaoExclusao(evento: EventoGerenciadoProdutor) {
+  if (excluindo.value) return
+  erroExclusao.value = ''
+  eventoParaExcluir.value = evento
+  document.body.style.overflow = 'hidden'
+  await nextTick()
+  botaoCancelarModal.value?.focus()
+}
+
+function fecharConfirmacaoExclusao() {
+  if (excluindo.value) return
+  eventoParaExcluir.value = null
+  erroExclusao.value = ''
+  document.body.style.overflow = ''
+}
+
+function aoPressionarTecla(event: KeyboardEvent) {
+  if (event.key === 'Escape' && eventoParaExcluir.value && !excluindo.value) {
+    fecharConfirmacaoExclusao()
+  }
+}
+
+async function confirmarExclusao() {
+  const alvo = eventoParaExcluir.value
+  if (!alvo || excluindo.value) return
+
+  excluindo.value = true
+  erroExclusao.value = ''
+  erro.value = ''
+  fecharSucesso()
+
   try {
-    const produtor = await authService.produtorAtual()
-    if (!produtor) throw new Error('Sua sessão de produtor não está disponível. Entre novamente.')
-    await eventoService.excluirMeuEvento(evento.id, produtor.id)
-    sucesso.value = 'Evento excluído com sucesso.'
+    const produtorId = await obterProdutorId()
+    await eventoService.excluirMeuEvento(alvo.id, produtorId)
+
+    eventoParaExcluir.value = null
+    document.body.style.overflow = ''
     await carregarEventos()
+    mostrarSucesso(`O evento "${alvo.titulo}" foi excluído com sucesso.`)
   } catch (error) {
     console.error('[CulturaPMW] Falha ao excluir evento:', error)
-    erro.value = error instanceof Error ? error.message : 'Não foi possível excluir o evento. Tente novamente.'
+    erroExclusao.value =
+      error instanceof Error ? error.message : 'Não foi possível excluir o evento. Tente novamente.'
   } finally {
-    excluindoId.value = null
+    excluindo.value = false
   }
 }
 
 onMounted(async () => {
-  if (route.query.salvo === '1') sucesso.value = 'Evento salvo com sucesso.'
+  window.addEventListener('keydown', aoPressionarTecla)
+
+  const estadoSalvo = route.query.salvo
+  if (estadoSalvo) {
+    if (estadoSalvo === 'editado') {
+      mostrarSucesso('Alterações do evento salvas com sucesso!')
+    } else if (estadoSalvo === 'criado') {
+      mostrarSucesso('Evento publicado com sucesso na agenda!')
+    } else {
+      mostrarSucesso('Evento salvo com sucesso!')
+    }
+    void router.replace({ name: 'produtor-eventos', query: {} })
+  }
+
   await carregarEventos()
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', aoPressionarTecla)
+  limparTimerSucesso()
+  document.body.style.overflow = ''
 })
 </script>
 
 <template>
-  <main class="produtor-area-page">
-    <header class="produtor-area-heading">
+  <ProdutorLayout titulo-topbar="Meus eventos">
+    <header class="produtor-content-header">
       <div>
-        <p class="produtor-eyebrow">ÁREA DO PRODUTOR</p>
+        <p class="produtor-breadcrumb">CULTURAPMW / GERENCIAMENTO</p>
         <h1>Meus eventos</h1>
-        <p>Publique e mantenha atualizadas as informações das suas atrações.</p>
+        <p class="produtor-content-subtitle">
+          Publique novas atrações e mantenha atualizadas as informações dos eventos cadastrados.
+        </p>
       </div>
-      <RouterLink to="/produtor/eventos/novo" class="produtor-button produtor-button-primary">
-        + Publicar evento
+
+      <RouterLink to="/produtor/eventos/novo" class="produtor-btn-primary produtor-primary-cta">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+        <span>Publicar evento</span>
       </RouterLink>
     </header>
 
-    <div class="produtor-eventos-resumo">
-      <article><strong>{{ resumo.total }}</strong><span>Eventos cadastrados</span></article>
-      <article><strong>{{ resumo.ativos }}</strong><span>Em andamento / publicados</span></article>
-      <article><strong>{{ resumo.concluidos }}</strong><span>Concluídos</span></article>
-    </div>
-
-    <div v-if="sucesso" class="produtor-alert produtor-alert-success" role="status">{{ sucesso }}</div>
-    <div v-if="erro" class="produtor-alert produtor-alert-error" role="alert">
-      {{ erro }}
-      <button type="button" class="produtor-inline-action" @click="carregarEventos">Tentar novamente</button>
-    </div>
-
-    <div v-if="carregando" class="produtor-data-card produtor-eventos-vazio">Carregando seus eventos...</div>
-    <section v-else-if="eventos.length === 0" class="produtor-data-card produtor-eventos-vazio">
-      <span class="produtor-dashboard-icon">▣</span>
-      <h2>Você ainda não publicou eventos</h2>
-      <p>Comece cadastrando uma atração cultural, esportiva ou de lazer em Palmas.</p>
-      <RouterLink to="/produtor/eventos/novo" class="produtor-button produtor-button-primary">Publicar meu primeiro evento</RouterLink>
+    <section class="produtor-kpis" aria-label="Resumo dos eventos">
+      <article class="produtor-kpi-card">
+        <span>Eventos cadastrados</span>
+        <strong>{{ carregando ? '—' : resumo.total }}</strong>
+      </article>
+      <article class="produtor-kpi-card is-highlight">
+        <span>Em andamento / publicados</span>
+        <strong>{{ carregando ? '—' : resumo.ativos }}</strong>
+      </article>
+      <article class="produtor-kpi-card">
+        <span>Concluídos</span>
+        <strong>{{ carregando ? '—' : resumo.concluidos }}</strong>
+      </article>
     </section>
 
-    <section v-else class="produtor-eventos-lista" aria-label="Eventos cadastrados">
+    <Transition name="produtor-feedback">
+      <div
+        v-if="sucesso"
+        :key="chaveSucesso"
+        class="produtor-feedback-banner is-success"
+        role="status"
+        aria-live="polite"
+      >
+        <span class="produtor-success-badge" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="9.5" pathLength="100" />
+            <path d="M7.8 12.4 10.6 15.2 16.4 9.2" pathLength="100" />
+          </svg>
+        </span>
+
+        <div class="produtor-feedback-content">
+          <strong>Ação concluída</strong>
+          <span>{{ sucesso }}</span>
+        </div>
+
+        <button
+          type="button"
+          class="produtor-alert-close"
+          aria-label="Fechar aviso"
+          @click="fecharSucesso"
+        >
+          ×
+        </button>
+
+        <span class="produtor-feedback-progress" aria-hidden="true"></span>
+      </div>
+    </Transition>
+
+    <div v-if="erro" class="produtor-status-alert is-error produtor-eventos-alert" role="alert">
+      <span>{{ erro }}</span>
+      <button type="button" class="produtor-inline-action" @click="carregarEventos()">
+        Tentar novamente
+      </button>
+    </div>
+
+    <div v-if="carregando" class="produtor-eventos-vazio" role="status">
+      Carregando seus eventos...
+    </div>
+
+    <section v-else-if="eventos.length === 0" class="produtor-eventos-vazio">
+      <span class="produtor-eventos-vazio-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24">
+          <rect x="3.5" y="5" width="17" height="15" rx="2.5" />
+          <path d="M8 3v4M16 3v4M3.5 9.5h17" />
+          <path d="M12 13v4M10 15h4" />
+        </svg>
+      </span>
+      <h2>Você ainda não publicou eventos</h2>
+      <p>Comece cadastrando uma atração cultural, esportiva ou de lazer em Palmas.</p>
+      <RouterLink to="/produtor/eventos/novo" class="produtor-btn-primary produtor-primary-cta">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+        <span>Publicar meu primeiro evento</span>
+      </RouterLink>
+    </section>
+
+    <TransitionGroup
+      v-else
+      name="produtor-evento-list"
+      tag="section"
+      class="produtor-eventos-lista"
+      aria-label="Eventos cadastrados"
+    >
       <article v-for="evento in eventos" :key="evento.id" class="produtor-evento-card">
-        <img v-if="evento.imagem_url" :src="evento.imagem_url" :alt="evento.titulo" class="produtor-evento-imagem" />
-        <div v-else class="produtor-evento-imagem produtor-evento-imagem-vazia">CulturaPMW</div>
-        <div class="produtor-evento-conteudo">
-          <div class="produtor-evento-meta">
-            <span>{{ evento.categoria?.nome ?? 'Categoria indisponível' }}</span>
-            <span :class="['produtor-evento-status', situacaoClasse(evento)]">{{ situacaoTexto(evento) }}</span>
+        <img
+          v-if="evento.imagem_url"
+          :src="evento.imagem_url"
+          :alt="evento.titulo"
+          class="produtor-evento-thumb"
+        />
+        <div v-else class="produtor-evento-thumb is-placeholder" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <rect x="3.5" y="5" width="17" height="15" rx="2.5" />
+            <path d="M8 3v4M16 3v4M3.5 9.5h17" />
+          </svg>
+          <span>Sem capa</span>
+        </div>
+
+        <div class="produtor-evento-body">
+          <div class="produtor-evento-top">
+            <span class="produtor-evento-categoria">
+              {{ evento.categoria?.nome ?? 'Categoria indisponível' }}
+            </span>
+            <span class="produtor-pill" :class="situacaoClasse(evento)">
+              {{ situacaoTexto(evento) }}
+            </span>
           </div>
-          <h2>{{ evento.titulo }}</h2>
+
+          <h2 class="produtor-evento-titulo">{{ evento.titulo }}</h2>
           <p class="produtor-evento-descricao">{{ evento.descricao }}</p>
-          <div class="produtor-evento-infos">
-            <span>Início: {{ formatarData(evento.data_inicio) }}</span>
-            <span>Término: {{ formatarData(evento.data_fim) }}</span>
-            <span>{{ evento.localizacao?.bairro ?? 'Localização não cadastrada' }} · {{ evento.localizacao?.regiao?.nome ?? 'Sem região' }}</span>
-            <strong>{{ evento.gratuito ? 'Gratuito' : `R$ ${Number(evento.valor_ingresso ?? 0).toFixed(2).replace('.', ',')}` }}</strong>
+
+          <div class="produtor-evento-meta">
+            <span>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 7.5v5l3.2 1.8" />
+              </svg>
+              {{ formatarData(evento.data_inicio) }} até {{ formatarData(evento.data_fim) }}
+            </span>
+
+            <span>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 21s-6-5.4-6-10a6 6 0 1 1 12 0c0 4.6-6 10-6 10Z" />
+                <circle cx="12" cy="11" r="2.2" />
+              </svg>
+              {{ formatarLocalizacao(evento) }}
+            </span>
+
+            <strong class="produtor-evento-preco">
+              {{
+                evento.gratuito
+                  ? 'Gratuito'
+                  : `R$ ${Number(evento.valor_ingresso ?? 0).toFixed(2).replace('.', ',')}`
+              }}
+            </strong>
           </div>
+
           <div class="produtor-evento-acoes">
-            <RouterLink :to="`/produtor/eventos/${evento.id}/editar`" class="produtor-button produtor-button-secondary">Editar</RouterLink>
-            <RouterLink v-if="evento.situacao !== 'OCULTO' && new Date(evento.data_fim) > new Date()" :to="`/eventos/${evento.id}`" class="produtor-button produtor-button-secondary">Visualizar página</RouterLink>
-            <button type="button" class="produtor-button produtor-button-danger" :disabled="excluindoId === evento.id" @click="excluirEvento(evento)">
-              {{ excluindoId === evento.id ? 'Excluindo...' : 'Excluir' }}
+            <RouterLink
+              :to="`/produtor/eventos/${evento.id}/editar`"
+              class="produtor-btn-secondary produtor-evento-btn"
+            >
+              Editar
+            </RouterLink>
+
+            <RouterLink
+              v-if="evento.situacao !== 'OCULTO' && new Date(evento.data_fim) > new Date()"
+              :to="`/eventos/${evento.id}`"
+              class="produtor-btn-secondary produtor-evento-btn"
+            >
+              Visualizar página
+            </RouterLink>
+
+            <button
+              type="button"
+              class="produtor-btn-danger produtor-evento-btn"
+              @click="abrirConfirmacaoExclusao(evento)"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3" />
+              </svg>
+              <span>Excluir</span>
             </button>
           </div>
         </div>
       </article>
-    </section>
+    </TransitionGroup>
 
-    <RouterLink to="/produtor/painel" class="produtor-back-link">← Voltar ao painel do produtor</RouterLink>
-  </main>
+    <Teleport to="body">
+      <div
+        v-if="eventoParaExcluir"
+        class="produtor-modal-backdrop"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-excluir-titulo"
+        aria-describedby="modal-excluir-descricao"
+        @click.self="fecharConfirmacaoExclusao"
+      >
+        <div class="produtor-modal-card">
+          <div class="produtor-modal-header">
+            <h2 id="modal-excluir-titulo">Excluir evento?</h2>
+            <p id="modal-excluir-descricao">
+              Esta ação é permanente e removerá o evento da agenda pública do CulturaPMW.
+            </p>
+          </div>
+
+          <div class="produtor-modal-evento-preview">
+            <img
+              v-if="eventoParaExcluir.imagem_url"
+              :src="eventoParaExcluir.imagem_url"
+              :alt="eventoParaExcluir.titulo"
+              class="produtor-modal-evento-thumb"
+            />
+            <div v-else class="produtor-modal-evento-thumb is-placeholder" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <rect x="3.5" y="5" width="17" height="15" rx="2.5" />
+                <path d="M8 3v4M16 3v4M3.5 9.5h17" />
+              </svg>
+              <span>Sem capa</span>
+            </div>
+
+            <div class="produtor-modal-evento-info">
+              <span class="produtor-evento-categoria">
+                {{ eventoParaExcluir.categoria?.nome ?? 'Categoria indisponível' }}
+              </span>
+              <strong>{{ eventoParaExcluir.titulo }}</strong>
+              <small>{{ formatarData(eventoParaExcluir.data_inicio) }} • {{ formatarLocalizacao(eventoParaExcluir) }}</small>
+            </div>
+          </div>
+
+          <p v-if="erroExclusao" class="produtor-modal-error" role="alert">
+            {{ erroExclusao }}
+          </p>
+
+          <div class="produtor-modal-actions">
+            <button
+              ref="botaoCancelarModal"
+              type="button"
+              class="produtor-btn-secondary produtor-modal-btn"
+              :disabled="excluindo"
+              @click="fecharConfirmacaoExclusao"
+            >
+              Cancelar
+            </button>
+
+            <button
+              type="button"
+              class="produtor-btn-danger produtor-modal-btn is-solid-danger"
+              :disabled="excluindo"
+              @click="confirmarExclusao"
+            >
+              {{ excluindo ? 'Excluindo...' : 'Sim, excluir evento' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+  </ProdutorLayout>
 </template>
-
-<style scoped>
-.produtor-eventos-resumo{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:18px}
-.produtor-eventos-resumo article{display:flex;flex-direction:column;gap:4px;padding:16px 18px;border:1px solid #e1e7ef;border-radius:10px;background:#fff}
-.produtor-eventos-resumo strong{color:#172b49;font-size:23px}.produtor-eventos-resumo span{color:#68768b;font-size:11px}
-.produtor-eventos-vazio{display:flex;flex-direction:column;align-items:center;gap:10px;padding:42px 20px;text-align:center}
-.produtor-eventos-vazio h2{margin:0;color:#172b49;font-size:18px}.produtor-eventos-vazio p{max-width:460px;margin:0 0 8px;color:#68768b;font-size:12px;line-height:1.6}
-.produtor-eventos-lista{display:grid;gap:14px}
-.produtor-evento-card{display:grid;grid-template-columns:190px minmax(0,1fr);overflow:hidden;border:1px solid #e1e7ef;border-radius:12px;background:#fff}
-.produtor-evento-imagem{width:100%;height:100%;min-height:190px;max-height:250px;object-fit:cover}
-.produtor-evento-imagem-vazia{display:grid;place-items:center;background:#edf4ff;color:#1154d9;font-size:19px;font-weight:800}
-.produtor-evento-conteudo{min-width:0;padding:18px}
-.produtor-evento-meta{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;color:#60718a;font-size:10px;font-weight:700}
-.produtor-evento-status{padding:5px 8px;border-radius:999px;font-size:10px}.produtor-evento-status-ativo{background:#eaf8ef;color:#197245}.produtor-evento-status-concluido{background:#eef1f5;color:#56657b}.produtor-evento-status-oculto{background:#fff0f0;color:#b32c38}
-.produtor-evento-conteudo h2{margin:9px 0 6px;color:#172b49;font-size:18px}.produtor-evento-descricao{display:-webkit-box;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:2;margin:0;color:#68768b;font-size:12px;line-height:1.55}
-.produtor-evento-infos{display:flex;flex-wrap:wrap;gap:8px 15px;margin-top:13px;color:#52627a;font-size:11px}.produtor-evento-infos strong{color:#172b49}
-.produtor-evento-acoes{display:flex;flex-wrap:wrap;gap:8px;margin-top:15px}.produtor-inline-action{margin-left:8px;border:0;background:transparent;color:#a72e38;font-weight:800;text-decoration:underline;cursor:pointer}
-@media(max-width:680px){.produtor-eventos-resumo{grid-template-columns:1fr}.produtor-evento-card{grid-template-columns:1fr}.produtor-evento-imagem{height:180px;min-height:0}.produtor-evento-acoes .produtor-button{flex:1}}
-</style>

@@ -1,8 +1,9 @@
 import { computed, readonly, ref } from 'vue'
 import { supabase } from '../services/supabase'
-import { authService, type PerfilProdutorAutenticado } from '../services/AuthService'
+import { authService, type PerfilAutenticado, type PerfilProdutorAutenticado } from '../services/AuthService'
 
 const perfil = ref<PerfilProdutorAutenticado | null>(null)
+const administrador = ref<PerfilAutenticado | null>(null)
 const carregando = ref(true)
 let inicializado = false
 let atualizando: Promise<PerfilProdutorAutenticado | null> | null = null
@@ -20,6 +21,7 @@ async function atualizarPerfil(forcar = false): Promise<PerfilProdutorAutenticad
   const requisicao = (async () => {
     const perfilAtualizado = await authService.produtorAtual()
     perfil.value = perfilAtualizado
+    administrador.value = perfilAtualizado ? null : await authService.administradorAtual()
     return perfilAtualizado
   })()
 
@@ -43,6 +45,7 @@ function inicializar(): void {
   supabase.auth.onAuthStateChange((_evento, sessao) => {
     if (!sessao) {
       perfil.value = null
+      administrador.value = null
       carregando.value = false
       return
     }
@@ -60,8 +63,9 @@ export function useAuth() {
 
   return {
     perfil: readonly(perfil),
+    administrador: readonly(administrador),
     carregando: readonly(carregando),
-    autenticado: computed(() => perfil.value !== null),
+    autenticado: computed(() => perfil.value !== null || administrador.value !== null),
     atualizarPerfil
   }
 }
