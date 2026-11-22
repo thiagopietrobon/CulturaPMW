@@ -1,0 +1,311 @@
+/* CulturaPMW — Biblioteca de animações e refinamentos globais.
+   Importado em src/style.css, vale para o site inteiro.
+
+   Regras importantes:
+   - Todas as animações de entrada terminam em `transform: none`.
+     Um transform residual criaria um novo "containing block" e quebraria
+     modais com position: fixed que estão dentro desses elementos.
+   - Tudo é desligado em prefers-reduced-motion.
+*/
+
+:root {
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-fast: 0.16s;
+  --dur-base: 0.28s;
+  --dur-enter: 0.6s;
+
+  --shadow-sm: 0 2px 8px rgb(8 46 99 / 6%);
+  --shadow-md: 0 8px 26px rgb(8 46 99 / 10%);
+  --shadow-lg: 0 18px 48px rgb(8 46 99 / 18%);
+  --gradient-brand: linear-gradient(110deg, #117cd9 0%, #1154d9 58%, #08428c 100%);
+}
+
+/* =========================================================
+   KEYFRAMES (prefixo cp- para não colidir)
+   ========================================================= */
+@keyframes cp-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes cp-fade-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes cp-fade-down {
+  from { opacity: 0; transform: translateY(-14px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes cp-fade-left {
+  from { opacity: 0; transform: translateX(-18px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes cp-scale-in {
+  from { opacity: 0; transform: scale(0.94) translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes cp-pop {
+  0% { opacity: 0; transform: scale(0.85); }
+  70% { opacity: 1; transform: scale(1.04); }
+  100% { opacity: 1; transform: none; }
+}
+
+@keyframes cp-float {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -14px, 0); }
+}
+
+@keyframes cp-drift {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(30px, -20px, 0) scale(1.08); }
+  100% { transform: translate3d(0, 0, 0) scale(1); }
+}
+
+@keyframes cp-gradient-pan {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes cp-shimmer {
+  from { background-position: -200% 0; }
+  to { background-position: 200% 0; }
+}
+
+@keyframes cp-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes cp-pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgb(25 166 106 / 45%); }
+  80%, 100% { box-shadow: 0 0 0 8px rgb(25 166 106 / 0%); }
+}
+
+@keyframes cp-shake {
+  0%, 100% { transform: none; }
+  20% { transform: translateX(-5px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+
+@keyframes cp-underline {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+/* =========================================================
+   REFINAMENTOS GLOBAIS
+   ========================================================= */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: rgb(17 84 217 / 18%);
+  color: #08428c;
+}
+
+:focus-visible {
+  outline: 3px solid rgb(17 124 217 / 40%);
+  outline-offset: 2px;
+}
+
+/* Barra de rolagem discreta na identidade azul */
+html {
+  scrollbar-color: #b9cde8 transparent;
+  scrollbar-width: thin;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: #b9cde8;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #8fb0dc;
+  background-clip: padding-box;
+}
+
+/* Spinner reutilizável: adicione a classe a qualquer elemento */
+.cp-spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid rgb(17 84 217 / 20%);
+  border-top-color: #1154d9;
+  border-radius: 50%;
+  animation: cp-spin 0.8s linear infinite;
+}
+
+/* =========================================================
+   TOQUE — onda (ripple) criada por src/composables/useToque.ts
+   ========================================================= */
+a,
+button,
+summary,
+[role='button'],
+label {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.cp-onda-camada {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.cp-onda {
+  position: absolute;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.16;
+  pointer-events: none;
+  transform: scale(0);
+  animation: cp-onda-expandir 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  transition: opacity 0.4s ease;
+}
+
+.cp-onda.is-saindo {
+  opacity: 0;
+}
+
+@keyframes cp-onda-expandir {
+  to { transform: scale(1); }
+}
+
+/* =========================================================
+   ENTRADAS — LOGIN, CADASTRO E RECUPERAÇÃO DE SENHA
+   ========================================================= */
+.login-card,
+.produtor-auth-card,
+.produtor-status-card {
+  animation: cp-scale-in 0.7s var(--ease-out) backwards;
+}
+
+.login-logo,
+.cadastro-logo {
+  animation: cp-fade-down 0.7s var(--ease-out) 0.1s backwards;
+}
+
+.login-heading,
+.cadastro-heading {
+  animation: cp-fade-up 0.6s var(--ease-out) 0.18s backwards;
+}
+
+.login-form > *,
+.cadastro-form > * {
+  animation: cp-fade-up 0.55s var(--ease-out) backwards;
+}
+
+.login-form > :nth-child(1), .cadastro-form > :nth-child(1) { animation-delay: 0.24s; }
+.login-form > :nth-child(2), .cadastro-form > :nth-child(2) { animation-delay: 0.30s; }
+.login-form > :nth-child(3), .cadastro-form > :nth-child(3) { animation-delay: 0.36s; }
+.login-form > :nth-child(4), .cadastro-form > :nth-child(4) { animation-delay: 0.42s; }
+.login-form > :nth-child(5), .cadastro-form > :nth-child(5) { animation-delay: 0.48s; }
+.login-form > :nth-child(n + 6), .cadastro-form > :nth-child(n + 6) { animation-delay: 0.54s; }
+
+/* Mensagem de erro chama atenção com um leve "tremor" */
+.login-error,
+.cadastro-server-error,
+.produtor-alert-error {
+  animation: cp-shake 0.45s ease backwards;
+}
+
+/* =========================================================
+   ENTRADAS — ÁREA DO PRODUTOR
+   ========================================================= */
+.produtor-content-header {
+  animation: cp-fade-left 0.6s var(--ease-out) backwards;
+}
+
+.produtor-kpi-card {
+  animation: cp-fade-up 0.6s var(--ease-out) backwards;
+  transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) ease;
+}
+
+.produtor-kpi-card:nth-child(1) { animation-delay: 0.08s; }
+.produtor-kpi-card:nth-child(2) { animation-delay: 0.16s; }
+.produtor-kpi-card:nth-child(3) { animation-delay: 0.24s; }
+
+.produtor-kpi-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgb(8 46 99 / 14%);
+}
+
+.produtor-summary-card,
+.produtor-eventos-vazio {
+  animation: cp-fade-up 0.65s var(--ease-out) 0.3s backwards;
+}
+
+.produtor-eventos-lista > .produtor-evento-card {
+  animation: cp-fade-up 0.5s var(--ease-out) backwards;
+}
+
+.produtor-eventos-lista > .produtor-evento-card:nth-child(1) { animation-delay: 0.32s; }
+.produtor-eventos-lista > .produtor-evento-card:nth-child(2) { animation-delay: 0.38s; }
+.produtor-eventos-lista > .produtor-evento-card:nth-child(3) { animation-delay: 0.44s; }
+.produtor-eventos-lista > .produtor-evento-card:nth-child(4) { animation-delay: 0.50s; }
+.produtor-eventos-lista > .produtor-evento-card:nth-child(5) { animation-delay: 0.56s; }
+.produtor-eventos-lista > .produtor-evento-card:nth-child(n + 6) { animation-delay: 0.62s; }
+
+.produtor-profile-card,
+.evento-form-card {
+  animation: cp-scale-in 0.7s var(--ease-out) backwards;
+}
+
+.produtor-sidebar-link {
+  position: relative;
+}
+
+.produtor-sidebar-link svg {
+  transition: transform var(--dur-base) var(--ease-spring);
+}
+
+.produtor-sidebar-link:hover svg {
+  transform: scale(1.15);
+}
+
+.produtor-modal-card {
+  animation: cp-pop 0.4s var(--ease-out) backwards;
+}
+
+.produtor-modal-backdrop {
+  animation: cp-fade-in 0.25s ease backwards;
+}
+
+/* =========================================================
+   ACESSIBILIDADE — sem movimento quando o usuário pede
+   ========================================================= */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

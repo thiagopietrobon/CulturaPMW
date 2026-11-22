@@ -24,6 +24,17 @@ import { authService } from '../services/AuthService'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
 
+  // Volta ao topo depois que a página anterior terminou de sair (transição),
+  // mantém a posição ao usar voltar/avançar e rola suave até âncoras (#).
+  scrollBehavior(to, from, posicaoSalva) {
+    if (posicaoSalva) return posicaoSalva
+    if (to.hash) return { el: to.hash, behavior: 'smooth', top: 90 }
+    if (to.path === from.path) return false
+    return new Promise((resolve) => {
+      window.setTimeout(() => resolve({ top: 0 }), 170)
+    })
+  },
+
   routes: [
     {
       path: '/',

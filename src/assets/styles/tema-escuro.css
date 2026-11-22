@@ -1,0 +1,148 @@
+/* CulturaPMW — Tema escuro: ajustes manuais
+   Carregado DEPOIS de tema-escuro.gerado.css (veja src/style.css).
+   Aqui ficam só os casos que o gerador automático não resolve sozinho:
+   fotos de fundo, logos, rolagem, campos nativos e a transição de tema.
+*/
+
+html[data-theme='escuro'] {
+  color-scheme: dark;
+  --shadow-sm: 0 2px 8px rgb(0 0 0 / 30%);
+  --shadow-md: 0 8px 26px rgb(0 0 0 / 40%);
+  --shadow-lg: 0 18px 48px rgb(0 0 0 / 50%);
+}
+
+html[data-theme='escuro'] body {
+  background-color: #0b1422;
+  color: #d9e4f2;
+}
+
+/* ---------- Fotos e ilustrações de fundo ---------- */
+html[data-theme='escuro'] .admin-shell,
+html[data-theme='escuro'] .produtor-status-page,
+html[data-theme='escuro'] .produtor-area-page {
+  background-color: #0b1422;
+  background-image:
+    linear-gradient(180deg, rgb(7 15 28 / 80%) 0%, rgb(7 15 28 / 90%) 100%),
+    url('../sgv/produtor-eventos-bg.jpg');
+}
+
+html[data-theme='escuro'] .admin-main,
+html[data-theme='escuro'] .produtor-workspace {
+  background: rgb(9 17 30 / 72%);
+}
+
+/* Cenário de Palmas do login/cadastro: escurecido como um "modo noite" */
+html[data-theme='escuro'] .auth-shared-background {
+  background-color: #0b1422;
+  filter: brightness(0.38) saturate(1.25) hue-rotate(-8deg);
+}
+
+/* Silhueta de Palmas no hero da Home */
+html[data-theme='escuro'] .hero::before {
+  opacity: 0.22;
+}
+
+/* ---------- Logos (azul-escuro sobre fundo escuro ficaria ilegível) ---------- */
+html[data-theme='escuro'] .login-logo,
+html[data-theme='escuro'] .cadastro-logo,
+html[data-theme='escuro'] .senha-auth-logo,
+html[data-theme='escuro'] .produtor-logo,
+html[data-theme='escuro'] .produtor-loader-logo,
+html[data-theme='escuro'] .produtor-profile-brand img,
+html[data-theme='escuro'] .evento-form-brand img {
+  filter: invert(1) hue-rotate(180deg) brightness(1.15) saturate(0.95);
+}
+
+/* Fotos dos eventos levemente atenuadas para não "estourar" no escuro */
+html[data-theme='escuro'] .card-imagem img,
+html[data-theme='escuro'] .banner img,
+html[data-theme='escuro'] .produtor-evento-thumb img {
+  filter: brightness(0.9) contrast(1.05);
+}
+
+/* Cartões e painéis translúcidos: borda sutil para separar do fundo */
+html[data-theme='escuro'] .evento-card,
+html[data-theme='escuro'] .filtros-box,
+html[data-theme='escuro'] .admin-panel,
+html[data-theme='escuro'] .admin-stat-card,
+html[data-theme='escuro'] .admin-quick-card,
+html[data-theme='escuro'] .produtor-kpi-card,
+html[data-theme='escuro'] .produtor-summary-card {
+  border-color: rgb(120 160 220 / 14%);
+}
+
+/* ---------- Campos de formulário ---------- */
+html[data-theme='escuro'] input::placeholder,
+html[data-theme='escuro'] textarea::placeholder {
+  color: #6f86a8;
+}
+
+html[data-theme='escuro'] input[type='date']::-webkit-calendar-picker-indicator,
+html[data-theme='escuro'] input[type='time']::-webkit-calendar-picker-indicator,
+html[data-theme='escuro'] input[type='datetime-local']::-webkit-calendar-picker-indicator {
+  filter: invert(0.8);
+}
+
+/* ---------- Seleção e rolagem ---------- */
+html[data-theme='escuro'] ::selection {
+  background: rgb(95 168 255 / 30%);
+  color: #fff;
+}
+
+html[data-theme='escuro'] {
+  scrollbar-color: #2b4266 transparent;
+}
+
+html[data-theme='escuro'] ::-webkit-scrollbar-thumb {
+  background: #2b4266;
+  background-clip: padding-box;
+}
+
+html[data-theme='escuro'] ::-webkit-scrollbar-thumb:hover {
+  background: #3b5a88;
+  background-clip: padding-box;
+}
+
+/* =========================================================
+   TRANSIÇÃO SUAVE AO TROCAR DE TEMA
+   1) Navegadores com View Transitions: círculo que se expande
+      a partir do botão (as variáveis --tema-x/--tema-y vêm do JS).
+   2) Demais: cores fazem transição por 450ms.
+   ========================================================= */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-new(root) {
+  animation: cp-tema-revelar 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes cp-tema-revelar {
+  from {
+    clip-path: circle(0 at var(--tema-x, 50%) var(--tema-y, 0%));
+  }
+  to {
+    clip-path: circle(var(--tema-raio, 150vmax) at var(--tema-x, 50%) var(--tema-y, 0%));
+  }
+}
+
+html.tema-trocando,
+html.tema-trocando *,
+html.tema-trocando *::before,
+html.tema-trocando *::after {
+  transition:
+    background-color 0.45s ease,
+    color 0.45s ease,
+    border-color 0.45s ease,
+    fill 0.45s ease,
+    stroke 0.45s ease,
+    box-shadow 0.45s ease !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}

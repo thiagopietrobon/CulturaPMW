@@ -4,7 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "tema:escuro": "node scripts/gerar-tema-escuro.mjs",
+    "predev": "node scripts/gerar-tema-escuro.mjs",
     "dev": "vite",
+    "prebuild": "node scripts/gerar-tema-escuro.mjs",
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview"
   },

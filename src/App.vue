@@ -7,6 +7,7 @@ import {
   type RouteLocationNormalizedLoaded
 } from 'vue-router'
 import logoCulturaPMW from './assets/sgv/culturapmw-logo.png'
+import BotaoTema from './components/layout/BotaoTema.vue'
 
 const routeAtual = useRoute()
 const router = useRouter()
@@ -32,6 +33,17 @@ let timerSeguranca: number | undefined
 const possuiFundoAuth = computed(
   () => routeAtual.meta.transition === 'auth'
 )
+
+// Telas com cabeçalho próprio já mostram o botão de tema;
+// nas demais (login, cadastro, status, formulários) ele fica flutuante.
+const ROTAS_COM_BOTAO_TEMA = new Set(['produtor-painel', 'produtor-eventos'])
+const mostrarBotaoTemaFlutuante = computed(() => {
+  if (routeAtual.matched.length === 0) return false
+  const caminho = routeAtual.path
+  if (caminho === '/' || caminho.startsWith('/eventos/') || caminho.startsWith('/produtores/')) return false
+  if (caminho.startsWith('/admin')) return false
+  return !ROTAS_COM_BOTAO_TEMA.has(String(routeAtual.name ?? ''))
+})
 
 function extrairNomeComponente(componente: Component | undefined): string {
   const tipo = (componente as { type?: { name?: string; __name?: string } } | undefined)?.type
@@ -110,6 +122,25 @@ const removerAfterEach = router.afterEach((to, _from, failure) => {
 
 const removerOnError = router.onError(() => {
   encerrarLoaderProdutor(true)
+  estadoBarra.value = 'parada'
+})
+
+// Barra fina no topo enquanto a próxima página carrega
+const estadoBarra = ref<'parada' | 'ativa' | 'concluida'>('parada')
+let timerBarra: number | undefined
+
+const removerBarraInicio = router.beforeEach((to, from) => {
+  if (to.path === from.path) return
+  window.clearTimeout(timerBarra)
+  estadoBarra.value = 'ativa'
+})
+
+const removerBarraFim = router.afterEach(() => {
+  if (estadoBarra.value !== 'ativa') return
+  estadoBarra.value = 'concluida'
+  timerBarra = window.setTimeout(() => {
+    estadoBarra.value = 'parada'
+  }, 600)
 })
 
 onUnmounted(() => {
@@ -117,6 +148,9 @@ onUnmounted(() => {
   removerBeforeEach()
   removerAfterEach()
   removerOnError()
+  removerBarraInicio()
+  removerBarraFim()
+  window.clearTimeout(timerBarra)
 })
 
 function nomeTransicao(
@@ -125,7 +159,7 @@ function nomeTransicao(
 ): string {
   if (route.meta.transition === 'auth') return 'auth-dissolve'
   if (ehRotaProdutor(route, componente)) return 'produtor-enter'
-  return 'no-transition'
+  return 'pagina-cruzada'
 }
 
 function chaveRota(
@@ -144,6 +178,15 @@ function chaveRota(
     class="app-shell"
     :class="{ 'app-shell--auth': possuiFundoAuth }"
   >
+    <div
+      class="barra-navegacao"
+      :class="{
+        'is-ativa': estadoBarra === 'ativa',
+        'is-concluida': estadoBarra === 'concluida'
+      }"
+      aria-hidden="true"
+    ></div>
+
     <!-- Fundo persistente: não participa da transição -->
     <div
       v-if="possuiFundoAuth"
@@ -197,6 +240,8 @@ function chaveRota(
         </Transition>
       </RouterView>
     </div>
+
+    <BotaoTema v-if="mostrarBotaoTemaFlutuante" flutuante />
   </div>
 </template>
 

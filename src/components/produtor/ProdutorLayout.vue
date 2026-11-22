@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useAuth } from '../../composables/useAuth'
 import { authService } from '../../services/AuthService'
 import logoCulturaPMW from '../../assets/sgv/culturapmw-logo.png'
+import BotaoTema from '../layout/BotaoTema.vue'
 import '../../assets/styles/produtor.css'
 import '../../assets/styles/produtor-area.css'
 import '../../assets/styles/produtor-painel.css'
@@ -260,13 +261,16 @@ onBeforeUnmount(() => {
           <span>{{ tituloTopbar }}</span>
         </div>
 
-        <span class="produtor-status-badge is-approved">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <circle cx="12" cy="12" r="9" />
-            <path d="m8.5 12.2 2.3 2.3 4.8-4.8" />
-          </svg>
-          <span>Cadastro aprovado</span>
-        </span>
+        <div class="produtor-topbar-right">
+          <BotaoTema />
+          <span class="produtor-status-badge is-approved">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" />
+              <path d="m8.5 12.2 2.3 2.3 4.8-4.8" />
+            </svg>
+            <span>Cadastro aprovado</span>
+          </span>
+        </div>
       </header>
 
       <main class="produtor-content">
