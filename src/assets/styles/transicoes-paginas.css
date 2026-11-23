@@ -1,0 +1,106 @@
+/* CulturaPMW — Transições entre páginas
+   - "pagina": troca dentro de um mesmo layout (público e admin).
+     A página atual sai rápido e a nova entra subindo suavemente.
+   - "pagina-cruzada": troca entre layouts diferentes (ex.: site -> admin),
+     com as duas telas se sobrepondo por um instante (cross-fade).
+   - Barra fina no topo enquanto a navegação carrega.
+   Login/cadastro e área do produtor mantêm as transições próprias
+   (transicao-basica.css e transicao-produtor.css).
+*/
+
+/* ---------- Dentro do mesmo layout ---------- */
+.pagina-enter-active {
+  transition:
+    opacity 0.38s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pagina-leave-active {
+  transition:
+    opacity 0.16s ease,
+    transform 0.16s ease;
+  pointer-events: none;
+}
+
+.pagina-enter-from {
+  opacity: 0;
+  transform: translateY(14px);
+}
+
+.pagina-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+/* ---------- Entre layouts ---------- */
+.pagina-cruzada-enter-active {
+  position: relative;
+  z-index: 1;
+  transition:
+    opacity 0.42s cubic-bezier(0.22, 1, 0.36, 1) 0.04s,
+    transform 0.48s cubic-bezier(0.22, 1, 0.36, 1) 0.04s;
+}
+
+.pagina-cruzada-leave-active {
+  position: absolute;
+  inset: 0 auto auto 0;
+  z-index: 0;
+  width: 100%;
+  pointer-events: none;
+  transition: opacity 0.22s ease;
+}
+
+.pagina-cruzada-enter-from {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.pagina-cruzada-leave-to {
+  opacity: 0;
+}
+
+/* ---------- Barra de progresso da navegação ---------- */
+.barra-navegacao {
+  position: fixed;
+  z-index: 10000;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, #117cd9, #5fa8ff, #1154d9);
+  box-shadow: 0 0 12px rgb(17 124 217 / 60%);
+  opacity: 0;
+  pointer-events: none;
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.barra-navegacao.is-ativa {
+  opacity: 1;
+  transform: scaleX(0.82);
+  transition:
+    transform 2.4s cubic-bezier(0.1, 0.65, 0.2, 1),
+    opacity 0.1s ease;
+}
+
+.barra-navegacao.is-concluida {
+  opacity: 0;
+  transform: scaleX(1);
+  transition:
+    transform 0.25s ease,
+    opacity 0.35s ease 0.2s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pagina-enter-active,
+  .pagina-leave-active,
+  .pagina-cruzada-enter-active,
+  .pagina-cruzada-leave-active {
+    transition: none;
+  }
+
+  .pagina-enter-from,
+  .pagina-cruzada-enter-from {
+    transform: none;
+  }
+}

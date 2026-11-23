@@ -2,6 +2,7 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { authService, type PerfilAutenticado } from '../../services/AuthService'
+import BotaoTema from '../../components/layout/BotaoTema.vue'
 import '../../assets/styles/admin.css'
 
 const router = useRouter()
@@ -71,10 +72,17 @@ async function sair() {
     <main class="admin-main">
       <header class="admin-topbar">
         <span>Área administrativa</span>
-        <span class="admin-topbar-status"><i></i> Painel protegido</span>
+        <div class="admin-topbar-right">
+          <BotaoTema />
+          <span class="admin-topbar-status"><i></i> Painel protegido</span>
+        </div>
       </header>
       <div class="admin-content">
-        <RouterView />
+        <RouterView v-slot="{ Component, route }">
+          <Transition name="pagina" mode="out-in">
+            <component :is="Component" :key="route.path" />
+          </Transition>
+        </RouterView>
       </div>
     </main>
   </div>

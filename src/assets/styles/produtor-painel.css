@@ -681,3 +681,15 @@
     transition: none;
   }
 }
+/* Lado direito da barra superior: botão de tema + selo de status */
+.produtor-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+@media (max-width: 560px) {
+  .produtor-topbar .produtor-status-badge span {
+    display: none;
+  }
+}

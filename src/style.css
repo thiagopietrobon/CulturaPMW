@@ -1,5 +1,9 @@
 
 @import './assets/styles/variables.css';
+@import './assets/styles/animacoes.css';
+@import './assets/styles/transicoes-paginas.css';
+@import './assets/styles/tema-escuro.gerado.css';
+@import './assets/styles/tema-escuro.css';
 
 * {
   margin: 0;
@@ -9,12 +13,13 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 90px;
 }
 
 body {
   min-width: 320px;
   min-height: 100vh;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-family);
   color: var(--color-text);
   background-color: var(--color-background);
   line-height: 1.5;

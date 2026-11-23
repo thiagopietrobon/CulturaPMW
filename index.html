@@ -5,6 +5,19 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>culturapmw</title>
+    <!-- Aplica o tema salvo antes de desenhar a página (evita piscar branco) -->
+    <script>
+      (function () {
+        var tema = 'claro'
+        try {
+          tema = localStorage.getItem('culturapmw:tema')
+          if (tema !== 'claro' && tema !== 'escuro') {
+            tema = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'escuro' : 'claro'
+          }
+        } catch (e) {}
+        document.documentElement.setAttribute('data-theme', tema)
+      })()
+    </script>
   </head>
   <body>
     <div id="app"></div>
