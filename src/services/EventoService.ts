@@ -145,10 +145,10 @@ export class EventoService {
 
     if (filtros.periodo === 'hoje') {
       const { inicio, fimExclusivo } = this.obterIntervaloHoje()
-      query = query.gte('data_inicio', inicio).lt('data_inicio', fimExclusivo)
+      query = query.lt('data_inicio', fimExclusivo).gte('data_fim', inicio)
     } else if (filtros.periodo === 'fim-de-semana') {
       const { inicio, fimExclusivo } = this.obterIntervaloFimDeSemana()
-      query = query.gte('data_inicio', inicio).lt('data_inicio', fimExclusivo)
+      query = query.lt('data_inicio', fimExclusivo).gte('data_fim', inicio)
     }
 
     const { data, error } = await query

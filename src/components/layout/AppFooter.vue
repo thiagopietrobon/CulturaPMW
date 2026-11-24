@@ -1,6 +1,6 @@
 
 <template>
-  <footer class="footer">
+  <footer id="sobre" class="footer">
     <div class="container footer-content">
       <div>
         <h2>CulturaPMW</h2>
