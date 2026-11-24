@@ -82,6 +82,10 @@ html[data-theme='escuro'] .admin-nav-link.ativo {
   box-shadow: 0 6px 18px rgb(20 104 214 / 38%);
 }
 
+html[data-theme='escuro'] .admin-nav-icon {
+  color: inherit;
+}
+
 html[data-theme='escuro'] .admin-sidebar-bottom {
   border-top: 1px solid rgb(255 255 255 / 12%);
 }
@@ -118,6 +122,7 @@ html[data-theme='escuro'] .admin-user-info small {
 }
 
 html[data-theme='escuro'] .admin-logout {
+  border: 0;
   background-image: none;
   background-color: transparent;
   color: #fca5a5;
@@ -139,6 +144,24 @@ html[data-theme='escuro'] .admin-topbar {
   background-image: none;
   background-color: rgb(19 27 40 / 86%);
   color: #a4b0c4;
+}
+
+html[data-theme='escuro'] .admin-menu-toggle {
+  border: 1px solid #233a5b;
+  background-image: none;
+  background-color: #131b28;
+  color: #a8c9f4;
+}
+
+html[data-theme='escuro'] .admin-menu-toggle:hover {
+  border-color: #117cd9;
+  background-image: none;
+  background-color: #101c31;
+}
+
+html[data-theme='escuro'] .admin-menu-toggle svg {
+  fill: none;
+  stroke: currentColor;
 }
 
 html[data-theme='escuro'] .admin-topbar-status {
@@ -211,6 +234,7 @@ html[data-theme='escuro'] .admin-form textarea,
 html[data-theme='escuro'] .admin-link-editor input,
 html[data-theme='escuro'] .admin-link-editor select {
   border: 1.5px solid #243b5f;
+  outline: none;
   background-image: none;
   background-color: #131b28;
   color: #aecbf3;
@@ -307,6 +331,10 @@ html[data-theme='escuro'] .admin-table td {
 html[data-theme='escuro'] .admin-table tbody tr:hover {
   background-image: none;
   background-color: rgb(16 30 49 / 70%);
+}
+
+html[data-theme='escuro'] .admin-table tbody tr:last-child td {
+  border-bottom: 0;
 }
 
 html[data-theme='escuro'] .admin-table td strong {
@@ -453,6 +481,10 @@ html[data-theme='escuro'] .admin-category-list li {
   border-bottom: 1px solid #1f3451;
 }
 
+html[data-theme='escuro'] .admin-category-list li:last-child {
+  border-bottom: 0;
+}
+
 html[data-theme='escuro'] .admin-category-list strong {
   color: #a8c9f4;
 }
@@ -535,8 +567,13 @@ html[data-theme='escuro'] .admin-button-primary::after {
 }
 
 @media (max-width: 860px) {
-  html[data-theme='escuro'] .admin-sidebar {
-    box-shadow: 0 4px 18px rgb(6 26 52 / 18%);
+  html[data-theme='escuro'] .admin-sidebar.is-open {
+    box-shadow: 12px 0 40px rgb(6 26 52 / 35%);
+  }
+
+  html[data-theme='escuro'] .admin-sidebar-backdrop {
+    background-image: none;
+    background-color: rgb(8 38 82 / 48%);
   }
 
 }
@@ -573,6 +610,11 @@ html[data-theme='escuro'] .cp-spinner {
   border-top-color: #1154d9;
 }
 
+html[data-theme='escuro'] .cp-onda {
+  background-image: none;
+  background-color: currentColor;
+}
+
 html[data-theme='escuro'] .produtor-kpi-card:hover {
   box-shadow: 0 12px 28px rgb(0 0 0 / 30.8%);
 }
@@ -604,6 +646,7 @@ html[data-theme='escuro'] .senha-auth-submit:focus-visible {
 }
 
 html[data-theme='escuro'] .senha-auth-divider {
+  border: 0;
   background-image: none;
   background-color: #152437;
 }
@@ -646,12 +689,15 @@ html[data-theme='escuro'] .senha-auth-input-wrap.is-invalid:focus-within {
 }
 
 html[data-theme='escuro'] .senha-auth-input-wrap input {
+  border: 0;
+  outline: 0;
   background-image: none;
   background-color: transparent;
   color: #aecbf3;
 }
 
 html[data-theme='escuro'] .senha-auth-password-toggle {
+  border: 0;
   background-image: none;
   background-color: transparent;
   color: #a9b9ce;
@@ -661,6 +707,11 @@ html[data-theme='escuro'] .senha-auth-password-toggle:hover {
   background-image: none;
   background-color: #111e33;
   color: #88abf0;
+}
+
+html[data-theme='escuro'] .senha-auth-password-toggle svg {
+  fill: none;
+  stroke: currentColor;
 }
 
 html[data-theme='escuro'] .senha-auth-hint {
@@ -682,6 +733,7 @@ html[data-theme='escuro'] .senha-auth-alert-success {
 }
 
 html[data-theme='escuro'] .senha-auth-submit {
+  border: 0;
   background-image: linear-gradient(110deg, #117cd9 0%, #1154d9 58%, #08428c 100%);
   background-color: transparent;
   box-shadow: 0 7px 17px rgb(17 84 217 / 22%);
@@ -730,14 +782,15 @@ html[data-theme='escuro'] .senha-auth-input-wrap input:-webkit-autofill:focus,
 html[data-theme='escuro'] .senha-auth-input-wrap input:-webkit-autofill:active {
   -webkit-text-fill-color: #aecbf3 !important;
   caret-color: #aecbf3;
-  box-shadow: 0 0 0 1000px #ffffff inset !important;
+  -webkit-box-shadow: 0 0 0 1000px #131b28 inset !important;
+  box-shadow: 0 0 0 1000px #131b28 inset !important;
   background-color: #131b28 !important;
 }
 
 html[data-theme='escuro'] .senha-auth-input-wrap input:autofill {
   color: #aecbf3 !important;
   background-color: #131b28 !important;
-  box-shadow: 0 0 0 1000px #ffffff inset !important;
+  box-shadow: 0 0 0 1000px #131b28 inset !important;
 }
 
 /* ---------- src/assets/styles/cadastro-produtor.css ---------- */
@@ -802,22 +855,28 @@ html[data-theme='escuro'] .cadastro-textarea-wrap:focus-within {
 }
 
 html[data-theme='escuro'] .cadastro-input-icon {
+  fill: none;
   stroke: #88abf0;
 }
 
 html[data-theme='escuro'] .cadastro-input-wrap input {
+  border: 0;
+  outline: 0;
   background-image: none;
   background-color: transparent;
   color: #aecbf3;
 }
 
 html[data-theme='escuro'] .cadastro-textarea-wrap textarea {
+  border: 0;
+  outline: 0;
   background-image: none;
   background-color: transparent;
   color: #aecbf3;
 }
 
 html[data-theme='escuro'] .cadastro-password-toggle {
+  border: 0;
   background-image: none;
   background-color: transparent;
   color: #a9b9ce;
@@ -827,6 +886,11 @@ html[data-theme='escuro'] .cadastro-password-toggle:hover {
   background-image: none;
   background-color: #111e33;
   color: #88abf0;
+}
+
+html[data-theme='escuro'] .cadastro-password-toggle svg {
+  fill: none;
+  stroke: currentColor;
 }
 
 html[data-theme='escuro'] .cadastro-field-hint,
@@ -863,8 +927,10 @@ html[data-theme='escuro'] .cadastro-server-error {
 }
 
 html[data-theme='escuro'] .cadastro-error-summary button {
+  border: 0;
   background-image: none;
   background-color: transparent;
+  color: inherit;
 }
 
 html[data-theme='escuro'] .cadastro-form-note {
@@ -876,10 +942,16 @@ html[data-theme='escuro'] .cadastro-form-note strong {
 }
 
 html[data-theme='escuro'] .cadastro-submit {
+  border: 0;
   background-image: linear-gradient(110deg, #117cd9 0%, #1154d9 58%, #08428c 100%);
   background-color: transparent;
   box-shadow: 0 7px 17px rgb(17 84 217 / 20%);
   color: #ffffff;
+}
+
+html[data-theme='escuro'] .cadastro-submit svg {
+  fill: none;
+  stroke: currentColor;
 }
 
 html[data-theme='escuro'] .cadastro-submit:hover:not(:disabled) {
@@ -895,6 +967,7 @@ html[data-theme='escuro'] .cadastro-footer-action {
 }
 
 html[data-theme='escuro'] .cadastro-footer-action svg {
+  fill: none;
   stroke: #a8c9f4;
 }
 
@@ -929,6 +1002,7 @@ html[data-theme='escuro'] .cadastro-success {
 }
 
 html[data-theme='escuro'] .cadastro-success > svg {
+  fill: none;
   stroke: #ace9c6;
 }
 
@@ -974,6 +1048,10 @@ html[data-theme='escuro'] .login-card {
   box-shadow: 0 18px 54px rgb(0 0 0 / 50.6%), 0 3px 12px rgb(0 0 0 / 19.8%);
 }
 
+html[data-theme='escuro'] .login-sr-only {
+  border: 0;
+}
+
 html[data-theme='escuro'] .login-divider {
   background-image: none;
   background-color: #182a41;
@@ -1003,20 +1081,25 @@ html[data-theme='escuro'] .login-input-wrap:focus-within {
 }
 
 html[data-theme='escuro'] .login-input-icon {
+  fill: none;
   stroke: #88abf0;
 }
 
 html[data-theme='escuro'] .login-icon-fill {
   fill: #88abf0;
+  stroke: none;
 }
 
 html[data-theme='escuro'] .login-input-wrap input {
+  border: 0;
+  outline: 0;
   background-image: none;
   background-color: transparent;
   color: #aecbf3;
 }
 
 html[data-theme='escuro'] .login-password-toggle {
+  border: 0;
   background-image: none;
   background-color: transparent;
   color: #a9b9ce;
@@ -1026,6 +1109,11 @@ html[data-theme='escuro'] .login-password-toggle:hover {
   background-image: none;
   background-color: #111e33;
   color: #88abf0;
+}
+
+html[data-theme='escuro'] .login-password-toggle svg {
+  fill: none;
+  stroke: currentColor;
 }
 
 html[data-theme='escuro'] .login-register-inline-group {
@@ -1067,12 +1155,22 @@ html[data-theme='escuro'] .login-submit:active:not(:disabled) {
   box-shadow: 0 3px 8px rgb(0 0 0 / 44%);
 }
 
+html[data-theme='escuro'] .login-submit svg {
+  fill: none;
+  stroke: currentColor;
+}
+
 html[data-theme='escuro'] .login-card > .cadastro-footer-action.cadastro-home-action {
   border: 1px solid #6688b4;
   background-image: linear-gradient(180deg, #101d2f 0%, #122236 100%);
   background-color: transparent;
   color: #a8c9f4;
   box-shadow: 0 4px 12px rgb(0 0 0 / 19.8%);
+}
+
+html[data-theme='escuro'] .login-card > .cadastro-footer-action.cadastro-home-action svg {
+  fill: none;
+  stroke: currentColor;
 }
 
 html[data-theme='escuro'] .login-card > .cadastro-footer-action.cadastro-home-action strong {
@@ -1128,14 +1226,15 @@ html[data-theme='escuro'] .login-input-wrap input:-webkit-autofill:focus,
 html[data-theme='escuro'] .login-input-wrap input:-webkit-autofill:active {
   -webkit-text-fill-color: #aecbf3 !important;
   caret-color: #aecbf3;
-  box-shadow: 0 0 0 1000px #ffffff inset !important;
+  -webkit-box-shadow: 0 0 0 1000px #131b28 inset !important;
+  box-shadow: 0 0 0 1000px #131b28 inset !important;
   background-color: #131b28 !important;
 }
 
 html[data-theme='escuro'] .login-input-wrap input:autofill {
   color: #aecbf3 !important;
   background-color: #131b28 !important;
-  box-shadow: 0 0 0 1000px #ffffff inset !important;
+  box-shadow: 0 0 0 1000px #131b28 inset !important;
 }
 
 html[data-theme='escuro'] .login-input-wrap,
@@ -1169,6 +1268,11 @@ html[data-theme='escuro'] .produtor-area-page {
 html[data-theme='escuro'] .produtor-divider {
   background-image: none;
   background-color: #182a41;
+}
+
+html[data-theme='escuro'] .produtor-status-badge svg {
+  fill: none;
+  stroke: currentColor;
 }
 
 html[data-theme='escuro'] .produtor-status-badge.is-approved {
@@ -1207,11 +1311,18 @@ html[data-theme='escuro'] .produtor-status-note {
 }
 
 html[data-theme='escuro'] .produtor-status-note svg {
+  fill: none;
   stroke: #88abf0;
 }
 
 html[data-theme='escuro'] .produtor-icon-fill {
   fill: #88abf0;
+  stroke: none;
+}
+
+html[data-theme='escuro'] .produtor-icon-fill-current {
+  fill: currentColor;
+  stroke: none;
 }
 
 html[data-theme='escuro'] .produtor-status-alert.is-info {
@@ -1249,11 +1360,21 @@ html[data-theme='escuro'] .produtor-btn-primary:hover:not(:disabled) {
     inset 0 1px 0 rgb(255 255 255 / 22%);
 }
 
+html[data-theme='escuro'] .produtor-btn-primary svg {
+  fill: none;
+  stroke: currentColor;
+}
+
 html[data-theme='escuro'] .produtor-btn-secondary {
   border: 1.5px solid #243b5f;
   background-image: none;
   background-color: #131b28;
   color: #aecbf3;
+}
+
+html[data-theme='escuro'] .produtor-btn-secondary svg {
+  fill: none;
+  stroke: currentColor;
 }
 
 html[data-theme='escuro'] .produtor-btn-secondary:hover:not(:disabled) {
@@ -1275,6 +1396,11 @@ html[data-theme='escuro'] .produtor-btn-danger {
   background-image: none;
   background-color: #2f1010;
   color: #e89e9e;
+}
+
+html[data-theme='escuro'] .produtor-btn-danger svg {
+  fill: none;
+  stroke: currentColor;
 }
 
 html[data-theme='escuro'] .produtor-btn-danger:hover:not(:disabled) {
@@ -1346,6 +1472,7 @@ html[data-theme='escuro'] .evento-error-summary {
 }
 
 html[data-theme='escuro'] .evento-error-summary button {
+  border: 0;
   background-image: none;
   background-color: transparent;
   color: #e89e9e;
@@ -1357,6 +1484,10 @@ html[data-theme='escuro'] .evento-error-summary button:hover {
 
 html[data-theme='escuro'] .evento-secao {
   border-bottom: 1px solid #1f3452;
+}
+
+html[data-theme='escuro'] .evento-secao:last-of-type {
+  border-bottom: 0;
 }
 
 html[data-theme='escuro'] .evento-secao-titulo > span {
@@ -1408,6 +1539,7 @@ html[data-theme='escuro'] .evento-form textarea:hover {
 html[data-theme='escuro'] .evento-form input:not([type='checkbox']):not([type='file']):focus,
 html[data-theme='escuro'] .evento-form select:focus,
 html[data-theme='escuro'] .evento-form textarea:focus {
+  outline: none;
   border-color: #1154d9;
   background-image: none;
   background-color: #131b28;
@@ -1465,6 +1597,7 @@ html[data-theme='escuro'] .evento-form .produtor-field.is-invalid select:focus,
 html[data-theme='escuro'] .evento-form input:not([type='checkbox']):not([type='file'])[aria-invalid='true']:focus,
 html[data-theme='escuro'] .evento-form textarea[aria-invalid='true']:focus,
 html[data-theme='escuro'] .evento-form select[aria-invalid='true']:focus {
+  outline: none;
   border-color: #dc2626;
   background-color: #131b28;
   box-shadow: 0 0 0 3.5px rgb(220 38 38 / 15%);
@@ -1519,6 +1652,11 @@ html[data-theme='escuro'] .evento-imagem-placeholder {
   color: #88abf0;
 }
 
+html[data-theme='escuro'] .evento-imagem-placeholder svg {
+  fill: none;
+  stroke: currentColor;
+}
+
 html[data-theme='escuro'] .evento-imagem-controles small {
   color: #acb8cb;
 }
@@ -1544,6 +1682,13 @@ html[data-theme='escuro'] .evento-link-linha.is-invalid {
   border-color: #662727;
   background-image: none;
   background-color: #301010;
+}
+
+html[data-theme='escuro'] .evento-btn-primary svg,
+html[data-theme='escuro'] .evento-btn-secondary svg,
+html[data-theme='escuro'] .evento-btn-danger svg {
+  fill: none;
+  stroke: currentColor;
 }
 
 html[data-theme='escuro'] .evento-btn-primary {
@@ -1611,8 +1756,10 @@ html[data-theme='escuro'] .evento-form-note strong {
 
 /* ---------- src/assets/styles/produtor-eventos.css ---------- */
 html[data-theme='escuro'] .produtor-alert-close {
+  border: 0;
   background-image: none;
   background-color: transparent;
+  color: inherit;
 }
 
 html[data-theme='escuro'] .produtor-alert-close:hover {
@@ -1621,6 +1768,7 @@ html[data-theme='escuro'] .produtor-alert-close:hover {
 }
 
 html[data-theme='escuro'] .produtor-inline-action {
+  border: 0;
   background-image: none;
   background-color: transparent;
   color: #e49da3;
@@ -1639,6 +1787,11 @@ html[data-theme='escuro'] .produtor-success-badge {
   background-color: #16a34a;
   color: #ffffff;
   box-shadow: 0 6px 14px rgb(22 163 74 / 28%);
+}
+
+html[data-theme='escuro'] .produtor-success-badge svg {
+  fill: none;
+  stroke: currentColor;
 }
 
 html[data-theme='escuro'] .produtor-feedback-content strong {
@@ -1666,6 +1819,11 @@ html[data-theme='escuro'] .produtor-eventos-vazio-icon {
   background-image: none;
   background-color: #122236;
   color: #88abf0;
+}
+
+html[data-theme='escuro'] .produtor-eventos-vazio-icon svg {
+  fill: none;
+  stroke: currentColor;
 }
 
 html[data-theme='escuro'] .produtor-eventos-vazio h2 {
@@ -1700,6 +1858,11 @@ html[data-theme='escuro'] .produtor-evento-thumb.is-placeholder {
   color: #88abf0;
 }
 
+html[data-theme='escuro'] .produtor-evento-thumb.is-placeholder svg {
+  fill: none;
+  stroke: currentColor;
+}
+
 html[data-theme='escuro'] .produtor-evento-categoria {
   color: #88abf0;
 }
@@ -1717,6 +1880,7 @@ html[data-theme='escuro'] .produtor-evento-meta {
 }
 
 html[data-theme='escuro'] .produtor-evento-meta svg {
+  fill: none;
   stroke: #88abf0;
 }
 
@@ -1728,6 +1892,11 @@ html[data-theme='escuro'] .produtor-evento-preco {
 
 html[data-theme='escuro'] .produtor-evento-acoes {
   border-top: 1px solid #203754;
+}
+
+html[data-theme='escuro'] .produtor-evento-btn svg {
+  fill: none;
+  stroke: currentColor;
 }
 
 html[data-theme='escuro'] .produtor-modal-backdrop {
@@ -1768,6 +1937,11 @@ html[data-theme='escuro'] .produtor-modal-evento-thumb.is-placeholder {
   color: #88abf0;
 }
 
+html[data-theme='escuro'] .produtor-modal-evento-thumb.is-placeholder svg {
+  fill: none;
+  stroke: currentColor;
+}
+
 html[data-theme='escuro'] .produtor-modal-evento-info strong {
   color: #a8c9f4;
 }
@@ -1798,9 +1972,15 @@ html[data-theme='escuro'] .produtor-modal-btn.is-solid-danger:hover:not(:disable
 }
 
 html[data-theme='escuro'] .produtor-summary-card .produtor-evento-card {
+  border: 0;
   border-bottom: 1px solid #1f3452;
   background-image: none;
   background-color: transparent;
+  box-shadow: none;
+}
+
+html[data-theme='escuro'] .produtor-summary-card .produtor-evento-card:last-child {
+  border-bottom: 0;
 }
 
 html[data-theme='escuro'] .produtor-summary-card .produtor-evento-card:hover {
@@ -1857,6 +2037,11 @@ html[data-theme='escuro'] .produtor-sidebar-link {
   color: #d6e6fa;
 }
 
+html[data-theme='escuro'] .produtor-sidebar-link svg {
+  fill: none;
+  stroke: currentColor;
+}
+
 html[data-theme='escuro'] .produtor-sidebar-link:hover {
   background-image: none;
   background-color: rgb(255 255 255 / 10%);
@@ -1876,6 +2061,7 @@ html[data-theme='escuro'] .produtor-sidebar-footer {
 
 html[data-theme='escuro'] .produtor-sidebar-back,
 html[data-theme='escuro'] .produtor-sidebar-logout {
+  border: 0;
   background-image: none;
   background-color: transparent;
 }
@@ -1898,6 +2084,12 @@ html[data-theme='escuro'] .produtor-sidebar-logout:hover {
   background-image: none;
   background-color: rgb(239 68 68 / 16%);
   color: #fee2e2;
+}
+
+html[data-theme='escuro'] .produtor-sidebar-back svg,
+html[data-theme='escuro'] .produtor-sidebar-logout svg {
+  fill: none;
+  stroke: currentColor;
 }
 
 html[data-theme='escuro'] .produtor-workspace {
@@ -1923,6 +2115,11 @@ html[data-theme='escuro'] .produtor-sidebar-toggle:hover {
   border-color: #117cd9;
   background-image: none;
   background-color: #101c31;
+}
+
+html[data-theme='escuro'] .produtor-sidebar-toggle svg {
+  fill: none;
+  stroke: currentColor;
 }
 
 html[data-theme='escuro'] .produtor-avatar {
@@ -2037,6 +2234,11 @@ html[data-theme='escuro'] .produtor-modal-icon {
   color: #eb8383;
 }
 
+html[data-theme='escuro'] .produtor-modal-icon svg {
+  fill: none;
+  stroke: currentColor;
+}
+
 html[data-theme='escuro'] .produtor-modal-card h2 {
   color: #a8c9f4;
 }
@@ -2108,6 +2310,7 @@ html[data-theme='escuro'] .produtor-error-summary {
 }
 
 html[data-theme='escuro'] .produtor-error-summary button {
+  border: 0;
   background-image: none;
   background-color: transparent;
   color: #e89e9e;
@@ -2177,6 +2380,7 @@ html[data-theme='escuro'] .produtor-field-hint {
 }
 
 html[data-theme='escuro'] .produtor-input-icon {
+  fill: none;
   stroke: #88abf0;
 }
 
@@ -2185,6 +2389,8 @@ html[data-theme='escuro'] .produtor-input-wrap.is-readonly .produtor-input-icon 
 }
 
 html[data-theme='escuro'] .produtor-input-wrap input {
+  border: 0;
+  outline: 0;
   background-image: none;
   background-color: transparent;
   color: #aecbf3;
@@ -2207,6 +2413,8 @@ html[data-theme='escuro'] .produtor-textarea-wrap:focus-within:not(.is-readonly)
 }
 
 html[data-theme='escuro'] .produtor-textarea-wrap textarea {
+  border: 0;
+  outline: 0;
   background-image: none;
   background-color: transparent;
   color: #aecbf3;
@@ -2226,6 +2434,7 @@ html[data-theme='escuro'] .produtor-profile-state {
 }
 
 html[data-theme='escuro'] .produtor-profile-state svg {
+  fill: none;
   stroke: #88abf0;
 }
 
@@ -2277,6 +2486,11 @@ html[data-theme='escuro'] .produtor-home-action {
   background-color: transparent;
   color: #a8c9f4;
   box-shadow: 0 4px 12px rgb(0 0 0 / 19.8%);
+}
+
+html[data-theme='escuro'] .produtor-home-action svg {
+  fill: none;
+  stroke: currentColor;
 }
 
 html[data-theme='escuro'] .produtor-home-action strong {
@@ -2363,6 +2577,7 @@ html[data-theme='escuro'] .produtor-field select {
   background-image: none;
   background-color: #131b28;
   color: #c5d5ed;
+  outline: none;
 }
 
 html[data-theme='escuro'] .produtor-field input:focus,

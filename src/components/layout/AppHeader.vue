@@ -344,6 +344,7 @@ html[data-theme='escuro'] .brand::before {
 html[data-theme='escuro'] .brand-name {
   background-image: linear-gradient(110deg, #08428c 0%, #1154d9 60%, #117cd9 100%);
   background-color: transparent;
+  color: transparent;
 }
 
 html[data-theme='escuro'] .brand-description {

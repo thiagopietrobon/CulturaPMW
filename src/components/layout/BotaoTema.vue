@@ -174,6 +174,11 @@ html[data-theme='escuro'] .botao-tema:focus-visible {
   outline: 3px solid rgb(17 124 217 / 40%);
 }
 
+html[data-theme='escuro'] .botao-tema svg {
+  fill: none;
+  stroke: currentColor;
+}
+
 html[data-theme='escuro'] .botao-tema.is-escuro {
   color: #ffd166;
 }

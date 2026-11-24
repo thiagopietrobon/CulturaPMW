@@ -314,6 +314,46 @@
   gap: 10px;
 }
 
+/* Lado esquerdo da barra superior: botão do menu (só no celular) + título */
+.admin-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-menu-toggle {
+  display: none;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid #d5e2f4;
+  border-radius: 10px;
+  background: #fff;
+  color: var(--admin-blue-dark);
+  cursor: pointer;
+  transition: border-color 0.16s ease, background-color 0.16s ease;
+}
+
+.admin-menu-toggle:hover {
+  border-color: var(--admin-blue-light);
+  background: #f4f8ff;
+}
+
+.admin-menu-toggle svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.9;
+}
+
+.admin-sidebar-backdrop {
+  display: none;
+}
+
 /* Mesmo badge verde usado em "Cadastro aprovado" do produtor */
 .admin-topbar-status {
   display: inline-flex;
@@ -1301,73 +1341,42 @@
 /* Sem JS para menu off-canvas no admin: no celular a sidebar
    vira uma barra superior com navegação horizontal. */
 @media (max-width: 860px) {
+  /* Menu lateral vira gaveta que desliza da esquerda (igual à área do produtor) */
   .admin-shell {
-    flex-direction: column;
     background-attachment: scroll;
     background-position: center, 24% bottom;
   }
 
   .admin-sidebar {
-    position: relative;
-    width: 100%;
+    position: fixed;
+    z-index: 40;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 270px;
     height: auto;
-    flex: 0 0 auto;
-    padding: 12px 14px;
-    overflow: visible;
-    box-shadow: 0 4px 18px rgb(6 26 52 / 18%);
+    max-width: 86vw;
+    animation: none;
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
-  .admin-brand {
-    padding: 0 2px 12px;
+  .admin-sidebar.is-open {
+    transform: none;
+    box-shadow: 12px 0 40px rgb(6 26 52 / 35%);
   }
 
-  .admin-brand-mark {
-    width: 38px;
-    height: 38px;
-    flex-basis: 38px;
-    font-size: 18px;
+  .admin-sidebar-backdrop {
+    position: fixed;
+    z-index: 30;
+    inset: 0;
+    display: block;
+    background: rgb(8 38 82 / 48%);
+    animation: cp-fade-in 0.2s ease backwards;
   }
 
-  .admin-nav-label {
-    display: none;
-  }
-
-  .admin-sidebar-bottom {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    margin-top: 10px;
-    padding-top: 10px;
-  }
-
-  .admin-user {
-    display: none;
-  }
-
-  .admin-back-public,
-  .admin-logout {
-    flex: 1 1 0;
-    justify-content: center;
-    min-height: 40px;
-    padding: 8px 10px;
-    font-size: 12.5px;
-    text-align: center;
-  }
-
-  .admin-nav {
-    flex-direction: row;
-    gap: 6px;
-    margin-top: 12px;
-    padding-bottom: 2px;
-    overflow-x: auto;
-  }
-
-  .admin-nav-link {
-    flex: 0 0 auto;
-    padding: 9px 13px;
-    font-size: 13px;
+  .admin-menu-toggle {
+    display: grid;
   }
 
   .admin-topbar {
@@ -1412,6 +1421,17 @@
 }
 
 @media (max-width: 460px) {
+  /* Barra superior compacta: selo vira só o ponto verde */
+  .admin-topbar-left span {
+    white-space: nowrap;
+  }
+
+  .admin-topbar-status {
+    gap: 0;
+    padding: 9px;
+    font-size: 0;
+  }
+
   .admin-topbar-status {
     font-size: 11px;
   }

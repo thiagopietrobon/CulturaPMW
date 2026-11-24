@@ -453,6 +453,7 @@ html[data-theme='escuro'] .abas-periodo {
 }
 
 html[data-theme='escuro'] .aba-btn {
+  border: 0;
   background-image: none;
   background-color: transparent;
   color: #b5c4da;
@@ -475,6 +476,7 @@ html[data-theme='escuro'] .campo-input,
 html[data-theme='escuro'] .campo-select,
 html[data-theme='escuro'] .filtro-multiselect summary {
   border: 1.5px solid #243b5f;
+  outline: none;
   background-color: #131b28;
   color: #aecbf3;
 }
@@ -540,6 +542,13 @@ html[data-theme='escuro'] .btn-limpar:hover {
   border-color: #dc8686;
   background-image: none;
   background-color: #301010;
+}
+
+@media (max-width: 560px) {
+  html[data-theme='escuro'] .opcoes-filtro {
+    box-shadow: none;
+  }
+
 }
 /* ===== FIM DO TEMA ESCURO GERADO ===== */
 </style>

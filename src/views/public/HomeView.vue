@@ -394,6 +394,7 @@ html[data-theme='escuro'] .hero h1::before {
   background-image: none;
   background-color: rgb(255 255 255 / 14%);
   color: #e2eeff;
+  text-shadow: none;
 }
 
 html[data-theme='escuro'] .hero p {
