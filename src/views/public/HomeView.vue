@@ -112,6 +112,8 @@ onBeforeUnmount(() => {
       <p>Descubra eventos culturais, esportivos e de lazer acontecendo na cidade.</p>
     </header>
 
+    <div id="eventos" class="ancora-eventos" aria-hidden="true"></div>
+
     <EventosFiltros
       v-model="filtros"
       :categorias="categorias"
@@ -145,6 +147,8 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.ancora-eventos { scroll-margin-top: 100px; }
+
 .home-container {
   display: flex;
   max-width: 1200px;

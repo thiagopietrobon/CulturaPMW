@@ -2540,7 +2540,7 @@ html[data-theme='escuro'] .auth-shared-background {
       rgb(255 255 255 / 2%) 42%,
       rgb(8 66 140 / 14%) 100%
     ),
-    url('../svg/login-Palmas.svg');
+    url('../images/login-palmas-novo.jpeg');
 }
 
 html[data-theme='escuro'] .app-shell--auth .login-page,

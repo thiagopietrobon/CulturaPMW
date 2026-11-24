@@ -103,6 +103,32 @@ html[data-theme='escuro'] ::-webkit-scrollbar-thumb:hover {
   background-clip: padding-box;
 }
 
+
+
+/* Corrige o preenchimento automático do navegador nas telas de autenticação.
+   O box-shadow interno precisa usar a mesma superfície escura do campo. */
+html[data-theme='escuro'] .login-input-wrap input:-webkit-autofill,
+html[data-theme='escuro'] .login-input-wrap input:-webkit-autofill:hover,
+html[data-theme='escuro'] .login-input-wrap input:-webkit-autofill:focus,
+html[data-theme='escuro'] .login-input-wrap input:-webkit-autofill:active,
+html[data-theme='escuro'] .login-input-wrap input:autofill,
+html[data-theme='escuro'] .cadastro-input-wrap input:-webkit-autofill,
+html[data-theme='escuro'] .cadastro-input-wrap input:-webkit-autofill:hover,
+html[data-theme='escuro'] .cadastro-input-wrap input:-webkit-autofill:focus,
+html[data-theme='escuro'] .cadastro-input-wrap input:-webkit-autofill:active,
+html[data-theme='escuro'] .cadastro-input-wrap input:autofill,
+html[data-theme='escuro'] .senha-auth-input-wrap input:-webkit-autofill,
+html[data-theme='escuro'] .senha-auth-input-wrap input:-webkit-autofill:hover,
+html[data-theme='escuro'] .senha-auth-input-wrap input:-webkit-autofill:focus,
+html[data-theme='escuro'] .senha-auth-input-wrap input:-webkit-autofill:active,
+html[data-theme='escuro'] .senha-auth-input-wrap input:autofill {
+  -webkit-text-fill-color: #aecbf3 !important;
+  caret-color: #aecbf3 !important;
+  -webkit-box-shadow: 0 0 0 1000px #131b28 inset !important;
+  box-shadow: 0 0 0 1000px #131b28 inset !important;
+  background-color: #131b28 !important;
+}
+
 /* =========================================================
    TRANSIÇÃO SUAVE AO TROCAR DE TEMA
    1) Navegadores com View Transitions: círculo que se expande

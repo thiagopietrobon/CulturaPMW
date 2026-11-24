@@ -36,7 +36,7 @@
       rgb(255 255 255 / 2%) 42%,
       rgb(8 66 140 / 14%) 100%
     ),
-    url('../svg/login-Palmas.svg');
+    url('../images/login-palmas-novo.jpeg');
 
   background-position: center, center 72%;
   background-repeat: no-repeat;
@@ -96,8 +96,8 @@
 /* Ajuste do cenário em dispositivos móveis */
 @media (max-width: 600px) {
   .auth-shared-background {
-    background-position: center, 23% 100%;
-    background-size: cover, auto 118%;
+    background-position: center, 58% center;
+    background-size: cover, cover;
   }
 }
 

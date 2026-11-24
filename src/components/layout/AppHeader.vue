@@ -36,8 +36,8 @@ async function sair() {
 
       <nav class="navigation">
         <RouterLink to="/" class="nav-link">Início</RouterLink>
-        <a href="/#eventos" class="nav-link">Eventos</a>
-        <a href="/#sobre" class="nav-link">Sobre</a>
+        <RouterLink to="/#eventos" class="nav-link">Eventos</RouterLink>
+        <RouterLink to="/#sobre" class="nav-link">Sobre</RouterLink>
       </nav>
 
       <div class="header-account">
