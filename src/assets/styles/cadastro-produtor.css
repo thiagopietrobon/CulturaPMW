@@ -1,7 +1,7 @@
 /* CulturaPMW — cadastro de produtor.
    Reaproveita os assets visuais do login.
    O cenário de Palmas é fornecido pela camada compartilhada do App.vue.
-   CSS em src/assets/styles/; assets em src/assets/sgv/.
+   CSS em src/assets/styles/; assets em src/assets/svg/.
 */
 :root {
   --cadastro-blue: #1154d9;

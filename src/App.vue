@@ -6,7 +6,7 @@ import {
   type RouteLocationNormalized,
   type RouteLocationNormalizedLoaded
 } from 'vue-router'
-import logoCulturaPMW from './assets/sgv/culturapmw-logo.png'
+import logoCulturaPMW from './assets/svg/culturapmw-logo.png'
 import BotaoTema from './components/layout/BotaoTema.vue'
 
 const routeAtual = useRoute()

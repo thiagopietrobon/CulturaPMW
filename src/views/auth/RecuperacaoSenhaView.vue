@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { authService } from '../../services/AuthService'
-import logoCulturaPMW from '../../assets/sgv/culturapmw-logo.png'
+import logoCulturaPMW from '../../assets/svg/culturapmw-logo.png'
 import '../../assets/styles/auth-senha.css'
 
 const email = ref('')

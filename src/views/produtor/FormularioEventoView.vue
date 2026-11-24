@@ -13,7 +13,7 @@ import {
   type DadosSalvarEventoProdutor
 } from '../../services/EventoService'
 import type { TipoLink } from '../../models/LinkExterno'
-import logoCulturaPMW from '../../assets/sgv/culturapmw-logo.png'
+import logoCulturaPMW from '../../assets/svg/culturapmw-logo.png'
 import '../../assets/styles/produtor.css'
 import '../../assets/styles/produtor-evento-form.css'
 

@@ -2,7 +2,7 @@
 import { onBeforeUnmount, ref } from "vue";
 import { useRouter } from "vue-router";
 import { authService } from "../../services/AuthService";
-import logoCulturaPMW from "../../assets/sgv/culturapmw-logo.png";
+import logoCulturaPMW from "../../assets/svg/culturapmw-logo.png";
 import "../../assets/styles/auth-senha.css";
 
 const router = useRouter();

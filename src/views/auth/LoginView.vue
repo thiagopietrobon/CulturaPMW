@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { authService, type PerfilProdutorAutenticado } from '../../services/AuthService'
-import logoCulturaPMW from '../../assets/sgv/culturapmw-logo.png'
+import logoCulturaPMW from '../../assets/svg/culturapmw-logo.png'
 import '../../assets/styles/login-unificado.css'
 
 const router = useRouter()

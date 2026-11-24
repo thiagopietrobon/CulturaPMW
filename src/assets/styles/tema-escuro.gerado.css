@@ -28,7 +28,7 @@ html[data-theme='escuro'] .admin-shell {
       rgb(255 255 255 / 8%) 48%,
       rgb(8 66 140 / 8%) 100%
     ),
-    url('../sgv/produtor-eventos-bg.jpg');
+    url('../svg/produtor-eventos-bg.jpg');
   color: #aecbf3;
 }
 
@@ -1163,7 +1163,7 @@ html[data-theme='escuro'] .produtor-area-page {
       rgb(255 255 255 / 8%) 48%,
       rgb(8 66 140 / 8%) 100%
     ),
-    url('../sgv/produtor-eventos-bg.jpg');
+    url('../svg/produtor-eventos-bg.jpg');
 }
 
 html[data-theme='escuro'] .produtor-divider {
@@ -2540,7 +2540,7 @@ html[data-theme='escuro'] .auth-shared-background {
       rgb(255 255 255 / 2%) 42%,
       rgb(8 66 140 / 14%) 100%
     ),
-    url('../sgv/login-Palmas.svg');
+    url('../svg/login-Palmas.svg');
 }
 
 html[data-theme='escuro'] .app-shell--auth .login-page,

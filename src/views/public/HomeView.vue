@@ -181,7 +181,7 @@ onBeforeUnmount(() => {
   z-index: -1;
   inset: auto 0 0;
   height: 75%;
-  background: url('../../assets/sgv/login-Palmas.svg') center bottom / cover no-repeat;
+  background: url('../../assets/svg/login-Palmas.svg') center bottom / cover no-repeat;
   opacity: 0.16;
   mix-blend-mode: luminosity;
   mask-image: linear-gradient(180deg, transparent 0%, #000 55%);
