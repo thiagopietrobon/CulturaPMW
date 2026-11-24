@@ -1,6 +1,6 @@
  <div align="center">
 
-<img src="./src/assets/svg/logo.jpg" alt="Logo CulturaPMW" width="180">
+<img src="./src/assets/svg/logo.jpg" alt="Logo CulturaPMW">
 
 # 🎭 CulturaPMW
 
