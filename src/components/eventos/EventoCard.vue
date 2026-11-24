@@ -258,6 +258,7 @@ html[data-theme='escuro'] .evento-card {
   background-image: none;
   background-color: #131b28;
   box-shadow: 0 6px 20px rgb(0 0 0 / 17.6%);
+  color: inherit;
 }
 
 html[data-theme='escuro'] .evento-card:hover {

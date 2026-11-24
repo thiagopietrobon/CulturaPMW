@@ -323,7 +323,7 @@ function resolverVariaveis(valor, profundidade = 0) {
    ===================================================================== */
 const PROPS_TEXTO = new Set(['color', 'caret-color', '-webkit-text-fill-color', 'text-decoration-color', 'fill', 'stroke', 'accent-color'])
 const RE_BORDA = /^(border(-(top|right|bottom|left|block|inline)(-(start|end))?)?(-color)?|outline(-color)?|column-rule(-color)?)$/
-const PROPS_SOMBRA = new Set(['box-shadow', 'text-shadow'])
+const PROPS_SOMBRA = new Set(['box-shadow', '-webkit-box-shadow', 'text-shadow'])
 const PROPS_FUNDO = new Set(['background', 'background-color', 'background-image'])
 
 const RE_IMAGEM = /^(?:repeating-)?(?:linear|radial|conic)-gradient\(|^url\(|^image-set\(|^none$/
@@ -358,7 +358,11 @@ function versaoEscura(declaracoes, fixo) {
     if (PROPS_TEXTO.has(prop)) mapa = mapaTexto
     else if (PROPS_FUNDO.has(prop)) mapa = mapaFundo
     else if (RE_BORDA.test(prop)) mapa = mapaBorda
-    else if (PROPS_SOMBRA.has(prop)) mapa = mapaSombra
+    else if (PROPS_SOMBRA.has(prop)) {
+      // Sombra interna gigante (ex.: "0 0 0 1000px #fff inset", usada para pintar o
+      // fundo do autopreenchimento do navegador) funciona como fundo, não como sombra.
+      mapa = /inset/.test(valor) && /\b\d{3,}px\b/.test(valor) ? mapaFundo : mapaSombra
+    }
     else continue
 
     // Só interessa se envolve cor (ou var que resolve para cor)
@@ -366,8 +370,11 @@ function versaoEscura(declaracoes, fixo) {
     const temCor = RE_COR.test(resolvido)
     RE_COR.lastIndex = 0
     const mantemVar = PROPS_FUNDO.has(prop) && /var\(/.test(valor)
-    if (!temCor && !mantemVar && !/^(transparent|none)$/i.test(valor)) continue
-    if (/^(transparent|none)$/i.test(valor) && !PROPS_FUNDO.has(prop)) continue
+    // Valores que REMOVEM algo (outline: 0, box-shadow: none, border: 0...) também
+    // são repetidos no tema escuro. Sem isso, uma regra genérica com versão escura
+    // (ex.: :focus-visible) passaria a vencer a remoção e duplicaria o foco.
+    const remocao = /^(transparent|none|0|0px|inherit|initial|unset|currentcolor)$/i.test(valor)
+    if (!temCor && !mantemVar && !remocao) continue
 
     const base = temCor ? resolvido : valor
     const novo = fixo ? base : trocarCores(base, mapa)

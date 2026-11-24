@@ -724,6 +724,7 @@ html[data-theme='escuro'] .btn-mapa.waze {
   border: 1.5px solid #243b5f;
   background-image: none;
   background-color: #131b28;
+  box-shadow: none;
   color: #a8c9f4;
 }
 

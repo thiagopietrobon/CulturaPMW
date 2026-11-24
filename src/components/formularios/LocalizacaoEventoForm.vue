@@ -444,6 +444,7 @@ html[data-theme='escuro'] .localizacao-field {
 html[data-theme='escuro'] .localizacao-field input,
 html[data-theme='escuro'] .localizacao-field select {
   border: 1.5px solid #233a5b;
+  outline: none;
   background-image: none;
   background-color: #131b28;
   color: #aecbf3;
