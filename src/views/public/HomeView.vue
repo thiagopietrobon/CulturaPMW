@@ -147,7 +147,12 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-.ancora-eventos { scroll-margin-top: 100px; }
+/* Âncora do link "Eventos": invisível e sem ocupar espaço
+   (o margin negativo anula o gap de 28px do .home-container). */
+.ancora-eventos {
+  margin-bottom: -28px;
+  scroll-margin-top: 100px;
+}
 
 .home-container {
   display: flex;
@@ -248,8 +253,10 @@ onBeforeUnmount(() => {
   animation: cp-fade-up 0.8s var(--ease-out) 0.28s backwards;
 }
 
-/* Filtros sobem por cima da borda inferior do hero */
-.hero + * {
+/* Os filtros sobem por cima da borda inferior do hero.
+   Seletor direto na caixa de filtros (antes era ".hero + *", que passou a
+   pegar a âncora invisível #eventos e tirou a camada dos filtros). */
+.hero ~ .filtros-box {
   position: relative;
   z-index: 2;
   margin: -84px clamp(10px, 3vw, 32px) 0;
@@ -367,7 +374,7 @@ onBeforeUnmount(() => {
     border-radius: 22px;
   }
 
-  .hero + * {
+  .hero ~ .filtros-box {
     margin-inline: 6px;
   }
 }
